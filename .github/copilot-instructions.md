@@ -37,7 +37,24 @@ dotnet build -t:Run -f net10.0-android              # Android emulator
 
 Requires .NET 10+ SDK with MAUI workload (`dotnet workload install maui`).
 
-**MauiDevFlow** is integrated for AI debugging — after launching the app, use `maui-devflow wait` then `maui-devflow MAUI status`, `screenshot`, `tree`, `tap`, etc. The `.claude/skills/maui-ai-debugging/` skill has full reference docs.
+### MAUI Debugging — Always Use MauiDevFlow
+
+When investigating or fixing any MAUI issue (UI bugs, layout problems, missing data, runtime errors), **always use MauiDevFlow first** before guessing or reading code alone. The app has the DevFlow agent integrated (`MauiProgram.cs` registers `AddMauiDevFlowAgent()` in `#if DEBUG`).
+
+**Workflow for fixing MAUI issues:**
+
+1. Build and launch the app (`dotnet build -t:Run -f net10.0-maccatalyst`)
+2. Wait for the agent: `maui-devflow wait`
+3. Inspect the live UI:
+   - `maui-devflow MAUI screenshot` — see exactly what the user sees
+   - `maui-devflow MAUI tree --depth 10 --fields "id,type,text,isVisible,width,height"` — inspect the visual tree
+   - `maui-devflow MAUI query --type "Label" --field "text"` — find specific elements
+4. Interact to reproduce issues:
+   - `maui-devflow MAUI tap --id <elementId>` — tap buttons/controls
+   - `maui-devflow MAUI fill --id <elementId> --text "value"` — fill text fields
+5. Screenshot again after changes to verify the fix
+
+**Do not** try to fix UI or rendering issues by reading XAML/C# alone — always launch the app and use DevFlow to see the actual state. The `.claude/skills/maui-ai-debugging/` skill has full platform-specific reference docs.
 
 ## Architecture
 
