@@ -12,7 +12,7 @@ public partial class SettingsPage : ContentPage
     {
         ["Anthropic"] = ("https://api.anthropic.com/v1/messages", "claude-sonnet-4-20250514"),
         ["Llama"]     = ("http://localhost:11434/v1/chat/completions", "llama3"),
-        ["Copilot"]   = ("https://api.githubcopilot.com/chat/completions", "gpt-4o"),
+        ["Copilot"]   = ("https://models.inference.ai.azure.com/chat/completions", "gpt-4o"),
         ["PrivateAPI"] = ("http://localhost:8023/api/chat", ""),
     };
 

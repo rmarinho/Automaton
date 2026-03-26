@@ -113,11 +113,6 @@ public sealed class LLMService
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _settings.Endpoint);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-
-        // GitHub Copilot API requires an integration ID header
-        if (_settings.Provider == "Copilot")
-            request.Headers.Add("Copilot-Integration-Id", "automaton-designer");
-
         request.Content = new StringContent(JsonSerializer.Serialize(body, JsonOpts), Encoding.UTF8, "application/json");
 
         using var response = await _http.SendAsync(request, ct);
