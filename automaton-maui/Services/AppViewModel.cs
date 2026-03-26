@@ -136,6 +136,9 @@ public sealed class AppViewModel : INotifyPropertyChanged
     /// <summary>Raised when the canvas should repaint.</summary>
     public event Action? CanvasInvalidated;
 
+    /// <summary>Request a canvas repaint (called by drawable during drag).</summary>
+    public void RequestCanvasInvalidate() => CanvasInvalidated?.Invoke();
+
     // ── Initialisation ───────────────────────────────────────────────
 
     public AppViewModel()

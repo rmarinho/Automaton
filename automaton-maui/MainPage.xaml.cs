@@ -27,6 +27,25 @@ public partial class MainPage : ContentPage
         NewTestExpected.SelectedIndex = 0;
     }
 
+    // ── Canvas drag ─────────────────────────────────────
+
+    void OnCanvasStartInteraction(object? sender, TouchEventArgs e)
+    {
+        if (e.Touches.Length > 0)
+            _drawable.OnStartInteraction(e.Touches[0]);
+    }
+
+    void OnCanvasDragInteraction(object? sender, TouchEventArgs e)
+    {
+        if (e.Touches.Length > 0)
+            _drawable.OnDragInteraction(e.Touches[0]);
+    }
+
+    void OnCanvasEndInteraction(object? sender, TouchEventArgs e)
+    {
+        _drawable.OnEndInteraction();
+    }
+
     // ── DSL Editor ────────────────────────────────────────
 
     void OnDslTextChanged(object? sender, TextChangedEventArgs e)

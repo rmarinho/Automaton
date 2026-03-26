@@ -13,6 +13,44 @@ public sealed class AutomatonCanvasDrawable : IDrawable
 
     const float StateRadius = 30f;
 
+    // ── Drag state ──────────────────────────────────────────
+    State? _dragState;
+    float _dragOffsetX, _dragOffsetY;
+
+    /// <summary>Hit-test on touch/click start — pick up a state if close enough.</summary>
+    public void OnStartInteraction(PointF point)
+    {
+        _dragState = null;
+        var vm = ViewModel;
+        if (vm == null) return;
+
+        foreach (var (state, pos) in vm.Layout)
+        {
+            float dx = point.X - (float)pos.X;
+            float dy = point.Y - (float)pos.Y;
+            if (dx * dx + dy * dy <= StateRadius * StateRadius)
+            {
+                _dragState = state;
+                _dragOffsetX = dx;
+                _dragOffsetY = dy;
+                return;
+            }
+        }
+    }
+
+    /// <summary>Move the dragged state to follow the pointer.</summary>
+    public void OnDragInteraction(PointF point)
+    {
+        if (_dragState == null || ViewModel == null) return;
+        ViewModel.Layout[_dragState] = new Position(
+            point.X - _dragOffsetX,
+            point.Y - _dragOffsetY);
+        ViewModel.RequestCanvasInvalidate();
+    }
+
+    /// <summary>Release the dragged state.</summary>
+    public void OnEndInteraction() => _dragState = null;
+
     // Catppuccin Mocha colours
     static readonly Color BgColor        = Color.FromArgb("#11111b");
     static readonly Color StateFill      = Color.FromArgb("#313244");

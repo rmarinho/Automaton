@@ -36,7 +36,10 @@
             <Grid Grid.Column="0" RowDefinitions="*,220">
 
                 <!-- Canvas -->
-                <GraphicsView x:Name="CanvasView" Grid.Row="0" BackgroundColor="{StaticResource Crust}"/>
+                <GraphicsView x:Name="CanvasView" Grid.Row="0" BackgroundColor="{StaticResource Crust}"
+                              StartInteraction="OnCanvasStartInteraction"
+                              DragInteraction="OnCanvasDragInteraction"
+                              EndInteraction="OnCanvasEndInteraction"/>
 
                 <!-- Simulation panel -->
                 <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*" BackgroundColor="{StaticResource Base}">
