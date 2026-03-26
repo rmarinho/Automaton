@@ -12,6 +12,13 @@
         <!-- Required for MauiDevFlow agent to accept incoming connections -->
         <key>com.apple.security.network.server</key>
         <true/>
+        <!-- NOTE: For SecureStorage (Keychain) support, add keychain-access-groups
+             and configure code signing with a provisioning profile:
+             <key>keychain-access-groups</key>
+             <array>
+               <string>$(AppIdentifierPrefix)com.companyname.automatondesigner</string>
+             </array>
+             Without it, SettingsService falls back to Preferences storage. -->
     </dict>
 </plist>
 

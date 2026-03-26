@@ -1,9 +1,9 @@
 namespace AutomatonDesigner.Services;
 
 /// <summary>
-/// Stores LLM settings. Uses SecureStorage for API keys when available (requires
-/// keychain entitlements + code signing), falling back to Preferences for unsigned
-/// development builds.
+/// Stores LLM settings. Uses SecureStorage for API keys (backed by Keychain on
+/// Apple platforms, Keystore on Android). Falls back to Preferences if SecureStorage
+/// is unavailable (e.g. unsigned Mac Catalyst builds without keychain entitlement).
 /// </summary>
 public sealed class SettingsService
 {
@@ -32,27 +32,28 @@ public sealed class SettingsService
         set => Preferences.Set("private_api_url", value);
     }
 
-    // API key storage with SecureStorage → Preferences fallback
-    public async Task<string> GetApiKeyAsync() => await GetSecureAsync("llm_api_key");
-    public async Task SetApiKeyAsync(string key) => await SetSecureAsync("llm_api_key", key);
+    // API key storage — SecureStorage with Preferences fallback
+    public Task<string> GetApiKeyAsync() => GetSecureAsync("llm_api_key");
+    public Task SetApiKeyAsync(string key) => SetSecureAsync("llm_api_key", key);
 
-    public async Task<string> GetPrivateTokenAsync() => await GetSecureAsync("private_api_token");
-    public async Task SetPrivateTokenAsync(string token) => await SetSecureAsync("private_api_token", token);
+    public Task<string> GetPrivateTokenAsync() => GetSecureAsync("private_api_token");
+    public Task SetPrivateTokenAsync(string token) => SetSecureAsync("private_api_token", token);
 
     private static async Task<string> GetSecureAsync(string key)
     {
         try
         {
-            var value = await SecureStorage.GetAsync(key);
+            var value = await SecureStorage.Default.GetAsync(key);
             if (!string.IsNullOrEmpty(value))
                 return value;
         }
         catch
         {
-            // Keychain unavailable
+            // Corrupted value or Keychain unavailable — clear and fall through
+            SecureStorage.Default.RemoveAll();
         }
 
-        // Fall back to Preferences (used when SecureStorage is unavailable or empty)
+        // Fallback for unsigned builds where SecureStorage silently returns null
         return Preferences.Get($"_secure_{key}", "");
     }
 
@@ -60,14 +61,12 @@ public sealed class SettingsService
     {
         try
         {
-            await SecureStorage.SetAsync(key, value);
-            return; // Keychain worked — done
+            await SecureStorage.Default.SetAsync(key, value);
         }
         catch
         {
-            // Keychain unavailable — fall back to Preferences
+            // Keychain unavailable (unsigned build) — use Preferences fallback
+            Preferences.Set($"_secure_{key}", value);
         }
-
-        Preferences.Set($"_secure_{key}", value);
     }
 }
