@@ -8,79 +8,307 @@
 </head>
 <body>
 
-<div id="app">
-  <!-- Header -->
-  <div id="header">
-    <h1>⚙ Automaton Designer</h1>
-    <div id="toolbar">
-      <button onclick="api('validate')">✓ Validate</button>
-      <button onclick="api('convert')">NFA→DFA</button>
-      <button onclick="api('save')">💾 Save JSON</button>
+<div id="app-shell">
+  <!-- Sidebar flyout -->
+  <nav id="sidebar">
+    <div class="sidebar-header">⚙ Automaton</div>
+    <a class="nav-item active" data-page="designer" onclick="showPage('designer')">
+      <span class="nav-icon">◉</span> Designer
+    </a>
+    <a class="nav-item" data-page="chat" onclick="showPage('chat')">
+      <span class="nav-icon">💬</span> Chat
+    </a>
+    <a class="nav-item" data-page="learn" onclick="showPage('learn')">
+      <span class="nav-icon">📖</span> Learn
+    </a>
+    <a class="nav-item" data-page="settings" onclick="showPage('settings')">
+      <span class="nav-icon">⚙</span> Settings
+    </a>
+    <a class="nav-item" data-page="about" onclick="showPage('about')">
+      <span class="nav-icon">ℹ</span> About
+    </a>
+  </nav>
+
+  <!-- Main content area -->
+  <div id="main-area">
+
+  <!-- ═══ PAGE: Designer ═══════════════════════════════════════════════ -->
+  <div id="page-designer" class="page active">
+    <div id="header">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h1>Automaton Designer</h1>
+      <div id="toolbar">
+        <button onclick="api('validate')">✓ Validate</button>
+        <button onclick="api('convert')">NFA→DFA</button>
+        <button onclick="api('save')">💾 Save</button>
+      </div>
+    </div>
+    <div id="main-content">
+      <div id="left-panel">
+        <div id="canvas-container">
+          <canvas id="automaton-canvas"></canvas>
+        </div>
+        <div id="sim-panel" class="panel">
+          <div class="panel-header"><span>Simulator</span></div>
+          <div class="sim-controls">
+            <input type="text" id="sim-input" placeholder="Enter test string…">
+            <button class="primary" onclick="runSimulation()">▶ Run</button>
+            <button onclick="stepSimulation()">⏭ Step</button>
+            <button onclick="resetSimulation()">↺ Reset</button>
+            <span id="sim-result"></span>
+          </div>
+          <div id="sim-trace"></div>
+        </div>
+      </div>
+      <div id="right-panel">
+        <div id="editor-panel">
+          <div class="panel-header">
+            <span>DSL Editor</span>
+            <button onclick="formatDsl()">Format</button>
+          </div>
+          <textarea id="dsl-editor" spellcheck="false"
+            placeholder="-- Enter automaton DSL here"></textarea>
+          <div id="editor-status"></div>
+        </div>
+        <div id="test-panel" class="panel">
+          <div class="panel-header">
+            <span>Test Runner</span>
+            <button class="primary" onclick="runAllTests()">▶ Run All</button>
+          </div>
+          <div id="test-list"></div>
+          <div class="test-add-row">
+            <input type="text" id="new-test-input" placeholder="input" class="test-input">
+            <select id="new-test-expected">
+              <option value="true">Accept</option>
+              <option value="false">Reject</option>
+            </select>
+            <button onclick="addTest()">+ Add</button>
+            <button onclick="removeLastTest()">− Remove</button>
+          </div>
+          <div id="test-summary" class="test-summary">No tests yet</div>
+        </div>
+      </div>
+    </div>
+    <div id="status-bar">
+      <div id="validation-list"></div>
     </div>
   </div>
 
-  <!-- Main content -->
-  <div id="main-content">
-    <!-- Left panel: canvas + simulation -->
-    <div id="left-panel">
-      <div id="canvas-container">
-        <canvas id="automaton-canvas"></canvas>
-      </div>
-      <!-- Simulation panel -->
-      <div id="sim-panel" class="panel">
-        <div class="panel-header"><span>Simulator</span></div>
-        <div class="sim-controls">
-          <input type="text" id="sim-input" placeholder="Enter test string…">
-          <button class="primary" onclick="runSimulation()">▶ Run</button>
-          <button onclick="stepSimulation()">⏭ Step</button>
-          <button onclick="resetSimulation()">↺ Reset</button>
-          <span id="sim-result"></span>
-        </div>
-        <div id="sim-trace"></div>
-      </div>
+  <!-- ═══ PAGE: Chat ═══════════════════════════════════════════════════ -->
+  <div id="page-chat" class="page">
+    <div class="page-toolbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>AI Assistant</h2>
+      <label class="ctx-toggle">
+        <input type="checkbox" id="chat-context-toggle" checked>
+        Include automaton context
+      </label>
     </div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-bar">
+      <input type="text" id="chat-input" placeholder="Ask about automata…"
+             onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="primary" onclick="sendChat()">Send</button>
+    </div>
+  </div>
 
-    <!-- Right panel: editor + tests -->
-    <div id="right-panel">
-      <!-- DSL Editor -->
-      <div id="editor-panel">
-        <div class="panel-header">
-          <span>DSL Editor</span>
-          <button onclick="formatDsl()">Format</button>
+  <!-- ═══ PAGE: Learn ══════════════════════════════════════════════════ -->
+  <div id="page-learn" class="page">
+    <div class="page-toolbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>Learn — Automata Theory</h2>
+    </div>
+    <div class="page-scroll">
+      <section class="learn-section">
+        <h3>What is a Finite Automaton?</h3>
+        <p>A finite automaton (FA) is an abstract machine that recognizes patterns in input strings.
+           It consists of a finite set of <em>states</em>, an <em>alphabet</em> of input symbols,
+           <em>transitions</em> between states, a <em>start state</em>, and a set of <em>accepting states</em>.</p>
+        <p>Formally: M = (Q, Σ, δ, q₀, F) where Q is the set of states, Σ is the alphabet,
+           δ is the transition function, q₀ is the start state, and F ⊆ Q are accepting states.</p>
+      </section>
+
+      <section class="learn-section">
+        <h3>Types of Automata</h3>
+        <div class="learn-card">
+          <h4>DFA — Deterministic Finite Automaton</h4>
+          <p>Exactly one transition per state per symbol. δ: Q × Σ → Q</p>
+          <p>For every (state, symbol) pair, there is exactly one next state.</p>
         </div>
-        <textarea id="dsl-editor" spellcheck="false"
-          placeholder="-- Enter automaton DSL here"></textarea>
-        <div id="editor-status"></div>
-      </div>
-      <!-- Test Runner -->
-      <div id="test-panel" class="panel">
-        <div class="panel-header">
-          <span>Test Runner</span>
-          <button class="primary" onclick="runAllTests()">▶ Run All</button>
+        <div class="learn-card">
+          <h4>NFA — Non-deterministic Finite Automaton</h4>
+          <p>Multiple transitions allowed per symbol. δ: Q × Σ → P(Q)</p>
+          <p>A string is accepted if <em>any</em> path through the automaton reaches an accept state.</p>
         </div>
-        <div id="test-list"></div>
-        <div class="test-add-row">
-          <input type="text" id="new-test-input" placeholder="input" class="test-input">
-          <select id="new-test-expected">
-            <option value="true">Accept</option>
-            <option value="false">Reject</option>
+        <div class="learn-card">
+          <h4>ε-NFA — NFA with Epsilon Transitions</h4>
+          <p>Like NFA but allows transitions without consuming input (ε-transitions).</p>
+          <p>δ: Q × (Σ ∪ {ε}) → P(Q). Epsilon closure extends the reachable states.</p>
+        </div>
+      </section>
+
+      <section class="learn-section">
+        <h3>DSL Format</h3>
+        <pre class="learn-code">automaton DFA
+alphabet: a,b
+states: q0,q1,q2
+start: q0
+accept: q2
+transitions:
+  q0,a -> q1
+  q0,b -> q0
+  q1,b -> q2
+  q2,a -> q1</pre>
+        <p>Use <code>eps</code> for epsilon transitions in ε-NFA definitions.</p>
+      </section>
+
+      <section class="learn-section">
+        <h3>Key Algorithms</h3>
+        <div class="learn-card">
+          <h4>Epsilon Closure</h4>
+          <p>Given a set of states, find all states reachable via ε-transitions alone.
+             This is computed as a fixed point: start with the initial set, add all states
+             reachable by ε, repeat until no new states are found.</p>
+        </div>
+        <div class="learn-card">
+          <h4>Subset Construction (NFA → DFA)</h4>
+          <p>Convert an NFA to an equivalent DFA. Each DFA state represents a <em>set</em> of
+             NFA states. Start with ε-closure of the NFA start state. For each symbol, compute
+             the union of transitions from all states in the set.</p>
+        </div>
+        <div class="learn-card">
+          <h4>Minimization</h4>
+          <p>Reduce a DFA to its minimum number of states using partition refinement
+             (Hopcroft's algorithm). States are equivalent if they produce the same
+             accept/reject result for all possible input strings.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: Settings ═══════════════════════════════════════════════ -->
+  <div id="page-settings" class="page">
+    <div class="page-toolbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>Settings</h2>
+    </div>
+    <div class="page-scroll">
+      <section class="settings-section">
+        <h3>LLM Provider</h3>
+        <div class="form-group">
+          <label>Provider</label>
+          <select id="settings-provider" onchange="onProviderChange()">
+            <option value="Anthropic">Anthropic (Claude)</option>
+            <option value="Llama">Llama (OpenAI-compatible)</option>
+            <option value="Copilot">GitHub Copilot</option>
+            <option value="PrivateAPI">Private API (Haskell backend)</option>
           </select>
-          <button onclick="addTest()">+ Add</button>
-          <button onclick="removeLastTest()">− Remove</button>
         </div>
-        <div id="test-summary" class="test-summary">No tests yet</div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="settings-apikey" placeholder="sk-…">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="settings-model" placeholder="claude-sonnet-4-20250514">
+        </div>
+        <div class="form-group">
+          <label>Endpoint URL</label>
+          <input type="text" id="settings-endpoint"
+                 placeholder="https://api.anthropic.com/v1/messages">
+        </div>
+      </section>
+      <section class="settings-section">
+        <h3>API Authentication</h3>
+        <p class="settings-hint">Set a bearer token to protect the /api/chat endpoint.
+           Both the web frontend and external clients (e.g. MAUI app) use this token.</p>
+        <div class="form-group">
+          <label>API Token</label>
+          <input type="password" id="settings-token" placeholder="Optional bearer token">
+        </div>
+      </section>
+      <div class="settings-actions">
+        <button class="primary" onclick="saveSettings()">Save Settings</button>
+        <span id="settings-saved"></span>
       </div>
     </div>
   </div>
 
-  <!-- Status bar -->
-  <div id="status-bar">
-    <div id="validation-list"></div>
+  <!-- ═══ PAGE: About ══════════════════════════════════════════════════ -->
+  <div id="page-about" class="page">
+    <div class="page-toolbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>About</h2>
+    </div>
+    <div class="page-scroll about-content">
+      <div class="about-logo">◉</div>
+      <h3>Automaton Designer</h3>
+      <p class="about-version">Version 1.0.0</p>
+      <p>A tool for designing, parsing, simulating, and testing
+         finite automata (DFA, NFA, ε-NFA).</p>
+      <div class="about-detail">
+        <h4>Features</h4>
+        <ul>
+          <li>Visual canvas with draggable states</li>
+          <li>Custom DSL editor with live parsing</li>
+          <li>Step-by-step simulation with state highlighting</li>
+          <li>Batch test runner</li>
+          <li>NFA→DFA conversion</li>
+          <li>AI-powered learning assistant</li>
+        </ul>
+      </div>
+      <div class="about-detail">
+        <h4>Tech Stack</h4>
+        <p>Haskell (Warp/WAI, Megaparsec, Aeson) + HTML5 Canvas</p>
+        <p>.NET MAUI (C#, cross-platform native)</p>
+      </div>
+      <div class="about-detail">
+        <h4>License</h4>
+        <p>MIT License — © 2026 Rui Marinho</p>
+      </div>
+      <p><a href="https://github.com/rmarinho/Automaton" target="_blank"
+            style="color:#89b4fa">github.com/rmarinho/Automaton</a></p>
+    </div>
   </div>
+
+  </div><!-- /main-area -->
 </div>
 
 <script src="canvas.js"></script>
 <script>
+// ── Navigation ─────────────────────────────────────────────────────────
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector('.nav-item[data-page="' + name + '"]').classList.add('active');
+  if (name === 'designer') setTimeout(function(){ updateCanvas(); }, 50);
+  if (name === 'settings') loadSettings();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Close sidebar on page click (mobile)
+document.addEventListener('click', function(e) {
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar.classList.contains('open') && !sidebar.contains(e.target) &&
+      !e.target.classList.contains('hamburger')) {
+    sidebar.classList.remove('open');
+  }
+});
+
+// Keyboard shortcut: Ctrl+L focuses chat
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+    e.preventDefault();
+    showPage('chat');
+    document.getElementById('chat-input').focus();
+  }
+});
+
 // ── Application state ──────────────────────────────────────────────────
 
 var appState = {
@@ -88,22 +316,32 @@ var appState = {
   layout: [],
   tests: [],
   simResult: null,
-  simStepIdx: 0
+  simStepIdx: 0,
+  chatMessages: []
 };
 
 // ── API helpers ─────────────────────────────────────────────────────────
 
+function getApiToken() {
+  return localStorage.getItem('api_token') || '';
+}
+
 async function apiPost(endpoint, data) {
+  var headers = {'Content-Type': 'application/json'};
+  var token = getApiToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
   const res = await fetch('/api/' + endpoint, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    method: 'POST', headers: headers,
     body: JSON.stringify(data)
   });
   return res.json();
 }
 
 async function apiGet(endpoint) {
-  const res = await fetch('/api/' + endpoint);
+  var headers = {};
+  var token = getApiToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch('/api/' + endpoint, {headers: headers});
   return res.json();
 }
 
@@ -170,11 +408,9 @@ async function parseDsl() {
 }
 
 async function formatDsl() {
-  // Re-parse and let the server format
   var dsl = document.getElementById('dsl-editor').value;
   const data = await apiPost('parse', {dsl: dsl});
   if (data.ok) {
-    // Reload state to get formatted DSL
     const state = await apiGet('state');
     document.getElementById('dsl-editor').value = state.dsl;
   }
@@ -190,7 +426,6 @@ function setStatus(cls, msg) {
 function updateCanvas(activeStates) {
   var trans = [];
   if (appState.automaton && appState.automaton.automTransitions) {
-    // automTransitions is a list (from JSON Set serialization)
     var tList = appState.automaton.automTransitions;
     if (!Array.isArray(tList)) tList = [];
     trans = tList.map(function(t) {
@@ -198,14 +433,9 @@ function updateCanvas(activeStates) {
       var labelStr = 'ε';
       if (label.tag === 'OnSymbol') labelStr = label.contents.symbolChar;
       else if (label.tag === 'OnEpsilon') labelStr = 'ε';
-      return {
-        from: t.transFrom.stateName,
-        to: t.transTo.stateName,
-        label: labelStr
-      };
+      return { from: t.transFrom.stateName, to: t.transTo.stateName, label: labelStr };
     });
   }
-  // Group duplicate transitions between same states
   var transMap = {};
   trans.forEach(function(t) {
     var key = t.from + '->' + t.to;
@@ -213,7 +443,6 @@ function updateCanvas(activeStates) {
     else transMap[key] = {from: t.from, to: t.to, label: t.label};
   });
   trans = Object.values(transMap);
-
   setAutomatonData({
     states: appState.layout || [],
     transitions: trans,
@@ -231,7 +460,6 @@ async function runSimulation() {
   appState.simStepIdx = data.simSteps.length - 1;
   renderSimTrace(data, data.simSteps.length - 1);
   showSimResult(data);
-  // Highlight final states
   if (data.simSteps.length > 0) {
     var last = data.simSteps[data.simSteps.length - 1];
     updateCanvas(last.stepActiveStates.map(function(s){ return s.stateName; }));
@@ -240,7 +468,6 @@ async function runSimulation() {
 
 async function stepSimulation() {
   if (!appState.simResult) {
-    // Start new simulation
     var input = document.getElementById('sim-input').value;
     const data = await apiPost('simulate', {input: input});
     appState.simResult = data;
@@ -268,9 +495,7 @@ function resetSimulation() {
 
 function highlightSimStep(idx) {
   var s = appState.simResult.simSteps[idx];
-  if (s) {
-    updateCanvas(s.stepActiveStates.map(function(st){ return st.stateName; }));
-  }
+  if (s) updateCanvas(s.stepActiveStates.map(function(st){ return st.stateName; }));
 }
 
 function showSimResult(data) {
@@ -288,8 +513,8 @@ function renderSimTrace(data, upTo) {
     var s = data.simSteps[i];
     var sym = s.stepSymbol ? s.stepSymbol.symbolChar : '—';
     var states = s.stepActiveStates.map(function(st){ return st.stateName; }).join(', ');
-    var highlight = (i === upTo) ? ' style="background:#313244;border-radius:3px;padding:2px 4px"' : '';
-    html += '<div class="sim-step"' + highlight + '>'
+    var hl = (i === upTo) ? ' style="background:#313244;border-radius:3px;padding:2px 4px"' : '';
+    html += '<div class="sim-step"' + hl + '>'
       + '<span class="step-num">Step ' + s.stepNumber + '</span>'
       + '<span class="step-sym">' + escHtml(sym) + '</span>'
       + '<span class="step-states">{' + escHtml(states) + '}</span>'
@@ -309,49 +534,135 @@ function addTest() {
   renderTests();
 }
 
-function removeLastTest() {
-  appState.tests.pop();
-  renderTests();
-}
+function removeLastTest() { appState.tests.pop(); renderTests(); }
 
 async function runAllTests() {
   const results = await apiPost('test', {tests: appState.tests});
-  var html = '';
-  var passed = 0;
-  results.forEach(function(r, i) {
+  var html = '', passed = 0;
+  results.forEach(function(r) {
     var cls = r.trPassed ? 'test-pass' : 'test-fail';
     var icon = r.trPassed ? '✓' : '✗';
     if (r.trPassed) passed++;
-    var exp = r.trTestCase.testExpected ? 'accept' : 'reject';
-    var act = r.trActual ? 'accept' : 'reject';
     html += '<div class="test-row">'
       + '<span class="' + cls + '">' + icon + '</span>'
       + '<span>"' + escHtml(r.trTestCase.testInput) + '"</span>'
-      + '<span style="color:#585b70">expect: ' + exp + '</span>'
-      + '<span style="color:#585b70">actual: ' + act + '</span>'
+      + '<span style="color:#585b70">expect: ' + (r.trTestCase.testExpected ? 'accept':'reject') + '</span>'
+      + '<span style="color:#585b70">actual: ' + (r.trActual ? 'accept':'reject') + '</span>'
       + '</div>';
   });
   document.getElementById('test-list').innerHTML = html;
-
-  var summaryEl = document.getElementById('test-summary');
-  if (passed === results.length) {
-    summaryEl.innerHTML = '<span class="test-pass">All ' + results.length + ' tests passed ✓</span>';
-  } else {
-    summaryEl.innerHTML = '<span class="test-fail">' + passed + '/' + results.length + ' passed</span>';
-  }
+  var s = document.getElementById('test-summary');
+  s.innerHTML = passed === results.length
+    ? '<span class="test-pass">All ' + results.length + ' tests passed ✓</span>'
+    : '<span class="test-fail">' + passed + '/' + results.length + ' passed</span>';
 }
 
 function renderTests() {
   var html = '';
-  appState.tests.forEach(function(t, i) {
-    var exp = t.testExpected ? 'accept' : 'reject';
-    html += '<div class="test-row">'
-      + '<span class="test-pending">○</span>'
+  appState.tests.forEach(function(t) {
+    html += '<div class="test-row"><span class="test-pending">○</span>'
       + '<span>"' + escHtml(t.testInput) + '"</span>'
-      + '<span style="color:#585b70">expect: ' + exp + '</span>'
-      + '</div>';
+      + '<span style="color:#585b70">expect: ' + (t.testExpected?'accept':'reject') + '</span></div>';
   });
   document.getElementById('test-list').innerHTML = html;
+}
+
+// ── Chat ────────────────────────────────────────────────────────────────
+
+async function sendChat() {
+  var input = document.getElementById('chat-input');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  appState.chatMessages.push({role: 'user', content: text});
+  renderChat();
+
+  // Build messages with optional automaton context
+  var msgs = [];
+  if (document.getElementById('chat-context-toggle').checked) {
+    var dsl = document.getElementById('dsl-editor').value || '';
+    msgs.push({role: 'system', content: dsl});
+  }
+  msgs = msgs.concat(appState.chatMessages);
+
+  try {
+    var data = await apiPost('chat', {messages: msgs});
+    if (data.ok) {
+      appState.chatMessages.push({role: 'assistant', content: data.reply});
+    } else {
+      appState.chatMessages.push({role: 'assistant',
+        content: '⚠ ' + (data.error || 'Unknown error')});
+    }
+  } catch(e) {
+    appState.chatMessages.push({role: 'assistant',
+      content: '⚠ Connection error: ' + e.message});
+  }
+  renderChat();
+}
+
+function renderChat() {
+  var el = document.getElementById('chat-messages');
+  if (appState.chatMessages.length === 0) {
+    el.innerHTML = '<div class="chat-empty">Ask the AI about automata theory, your current automaton, or the DSL format.<br><br>Configure an API key in <a onclick="showPage(\'settings\')" style="color:#89b4fa;cursor:pointer">Settings</a> to get started.</div>';
+    return;
+  }
+  var html = '';
+  appState.chatMessages.forEach(function(m) {
+    var cls = m.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai';
+    html += '<div class="chat-bubble ' + cls + '">'
+      + '<div class="chat-role">' + (m.role === 'user' ? 'You' : 'AI') + '</div>'
+      + '<div class="chat-text">' + escHtml(m.content) + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Settings ────────────────────────────────────────────────────────────
+
+var providerDefaults = {
+  Anthropic:  { endpoint: 'https://api.anthropic.com/v1/messages', model: 'claude-sonnet-4-20250514' },
+  Llama:      { endpoint: 'http://localhost:11434/v1/chat/completions', model: 'llama3' },
+  Copilot:    { endpoint: 'https://api.githubcopilot.com/chat/completions', model: 'gpt-4o' },
+  PrivateAPI: { endpoint: 'http://localhost:8023/api/chat', model: '' }
+};
+
+function onProviderChange() {
+  var p = document.getElementById('settings-provider').value;
+  var d = providerDefaults[p];
+  if (d) {
+    document.getElementById('settings-endpoint').value = d.endpoint;
+    document.getElementById('settings-model').value = d.model;
+  }
+}
+
+function loadSettings() {
+  var s = JSON.parse(localStorage.getItem('llm_settings') || '{}');
+  if (s.provider) document.getElementById('settings-provider').value = s.provider;
+  if (s.apiKey) document.getElementById('settings-apikey').value = s.apiKey;
+  if (s.model) document.getElementById('settings-model').value = s.model;
+  if (s.endpoint) document.getElementById('settings-endpoint').value = s.endpoint;
+  if (s.apiToken) document.getElementById('settings-token').value = s.apiToken;
+}
+
+async function saveSettings() {
+  var settings = {
+    provider: document.getElementById('settings-provider').value,
+    apiKey: document.getElementById('settings-apikey').value,
+    model: document.getElementById('settings-model').value,
+    endpoint: document.getElementById('settings-endpoint').value,
+    apiToken: document.getElementById('settings-token').value
+  };
+  localStorage.setItem('llm_settings', JSON.stringify(settings));
+  localStorage.setItem('api_token', settings.apiToken);
+
+  // Also push to backend
+  await apiPost('settings', settings);
+
+  var el = document.getElementById('settings-saved');
+  el.innerHTML = '<span class="status-ok">✓ Saved</span>';
+  setTimeout(function() { el.innerHTML = ''; }, 2000);
 }
 
 // ── Utilities ───────────────────────────────────────────────────────────

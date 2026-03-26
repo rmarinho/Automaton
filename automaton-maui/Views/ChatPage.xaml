@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AutomatonDesigner.ViewModels"
+             x:Class="AutomatonDesigner.Views.ChatPage"
+             x:DataType="vm:ChatViewModel"
+             Title="Chat"
+             BackgroundColor="{StaticResource Base}">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="16" RowSpacing="8">
+
+        <!-- Header: provider + context toggle -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Padding="0,0,0,4">
+            <Label Text="{Binding ProviderName, StringFormat='Provider: {0}'}"
+                   TextColor="{StaticResource Subtext}" FontSize="13"
+                   VerticalOptions="Center" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                <Label Text="Include context"
+                       TextColor="{StaticResource Subtext}" FontSize="13"
+                       VerticalOptions="Center" />
+                <CheckBox IsChecked="{Binding IncludeContext}"
+                          Color="{StaticResource Blue}" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Messages list -->
+        <CollectionView Grid.Row="1"
+                        x:Name="MessagesCollection"
+                        ItemsSource="{Binding Messages}"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChatMessageVM">
+                    <Grid Padding="0,4">
+                        <Border BackgroundColor="{StaticResource Surface0}"
+                                StrokeShape="RoundRectangle 12"
+                                Stroke="Transparent"
+                                Padding="14,10"
+                                MaximumWidthRequest="600"
+                                HorizontalOptions="Start"
+                                IsVisible="{Binding IsAssistant}">
+                            <Label Text="{Binding Content}"
+                                   TextColor="{StaticResource TextColor}"
+                                   FontSize="14"
+                                   LineBreakMode="WordWrap" />
+                        </Border>
+                        <Border BackgroundColor="{StaticResource Blue}"
+                                StrokeShape="RoundRectangle 12"
+                                Stroke="Transparent"
+                                Padding="14,10"
+                                MaximumWidthRequest="600"
+                                HorizontalOptions="End"
+                                IsVisible="{Binding IsUser}">
+                            <Label Text="{Binding Content}"
+                                   TextColor="{StaticResource Crust}"
+                                   FontSize="14"
+                                   LineBreakMode="WordWrap" />
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Banner: shown when no API key -->
+        <Border Grid.Row="2"
+                BackgroundColor="{StaticResource Surface0}"
+                StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                Padding="16" Margin="0,0,0,4"
+                IsVisible="{Binding ShowBanner}">
+            <Label Text="Configure an API key in Settings to use the AI assistant."
+                   TextColor="{StaticResource Subtext}" FontSize="14"
+                   HorizontalTextAlignment="Center" />
+        </Border>
+
+        <!-- Loading indicator -->
+        <ActivityIndicator Grid.Row="2"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="{StaticResource Blue}"
+                           HorizontalOptions="Center"
+                           Margin="0,4" />
+
+        <!-- Input area -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Border BackgroundColor="{StaticResource Surface0}"
+                    StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                    Padding="8">
+                <Entry x:Name="MessageEntry"
+                       Text="{Binding MessageText}"
+                       Placeholder="Type a message..."
+                       PlaceholderColor="{StaticResource Overlay}"
+                       TextColor="{StaticResource TextColor}"
+                       BackgroundColor="Transparent"
+                       IsEnabled="{Binding HasApiKey}"
+                       ReturnType="Send"
+                       Completed="OnEntryCompleted" />
+            </Border>
+            <Button Grid.Column="1"
+                    Text="Send"
+                    BackgroundColor="{StaticResource Blue}"
+                    TextColor="{StaticResource Crust}"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    IsEnabled="{Binding CanSend}"
+                    Clicked="OnSendClicked" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

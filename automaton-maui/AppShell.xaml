@@ -4,11 +4,25 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:AutomatonDesigner"
-    Title="AutomatonDesigner">
+    xmlns:views="clr-namespace:AutomatonDesigner.Views"
+    Title="Automaton Designer"
+    FlyoutBehavior="Flyout"
+    Shell.FlyoutBackground="{StaticResource Mantle}">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <FlyoutItem Title="Designer">
+        <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
+    </FlyoutItem>
+    <FlyoutItem Title="Chat">
+        <ShellContent ContentTemplate="{DataTemplate views:ChatPage}" Route="ChatPage" />
+    </FlyoutItem>
+    <FlyoutItem Title="Learn">
+        <ShellContent ContentTemplate="{DataTemplate views:LearnPage}" Route="LearnPage" />
+    </FlyoutItem>
+    <FlyoutItem Title="Settings">
+        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" Route="SettingsPage" />
+    </FlyoutItem>
+    <FlyoutItem Title="About">
+        <ShellContent ContentTemplate="{DataTemplate views:AboutPage}" Route="AboutPage" />
+    </FlyoutItem>
 
 </Shell>

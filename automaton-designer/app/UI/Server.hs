@@ -6,9 +6,11 @@ module UI.Server (runServer) where
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
-import Network.HTTP.Types         (status200, status404, hContentType)
+import qualified Data.Text.Encoding as TE
+import Network.HTTP.Types         (status200, status401, status404, hContentType)
 import Network.Wai                (Application, Request, Response, responseLBS,
-                                   requestMethod, pathInfo, strictRequestBody)
+                                   requestMethod, pathInfo, strictRequestBody,
+                                   requestHeaders)
 import Network.Wai.Handler.Warp   (run)
 import System.Directory            (getCurrentDirectory, doesFileExist)
 import System.FilePath             ((</>))
@@ -39,6 +41,14 @@ app st staticDir req respond = do
     ("POST", ["api", "validate"]) -> handleIO (handleValidate st) respond
     ("POST", ["api", "convert"])  -> handleIO (handleConvert st) respond
     ("POST", ["api", "save"])     -> handleIO (handleSave st) respond
+
+    -- ── Chat (token-protected) ────────────────────────────────────────
+    ("POST", ["api", "chat"])     -> withAuth st req respond $
+                                       handleBodyIO (handleChat st) req respond
+
+    -- ── Settings ──────────────────────────────────────────────────────
+    ("GET",  ["api", "settings"]) -> handleIO (handleGetSettings st) respond
+    ("POST", ["api", "settings"]) -> handleBodyIO (handleSaveSettings st) req respond
 
     -- ── Static files ──────────────────────────────────────────────────
     ("GET", [])  -> serveFile staticDir "index.html" respond
@@ -85,3 +95,15 @@ contentType name
   | otherwise        = "application/octet-stream"
   where
     endsWith suffix = drop (length name - length suffix) name == suffix
+
+-- | Check bearer token before executing an action.
+withAuth :: AppState -> Request -> (Response -> IO b) -> IO b -> IO b
+withAuth st req respond action = do
+  let authHeader = lookup "Authorization" (requestHeaders req)
+      bearer     = fmap (T.strip . TE.decodeUtf8 . BS.drop 7) authHeader
+  ok <- checkApiToken st bearer
+  if ok
+    then action
+    else respond $ responseLBS status401
+           [(hContentType, "application/json")]
+           "{\"error\":\"Unauthorized\"}"

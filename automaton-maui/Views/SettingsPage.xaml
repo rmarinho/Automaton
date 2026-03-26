@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutomatonDesigner.Views.SettingsPage"
+             Title="Settings"
+             BackgroundColor="{StaticResource Base}">
+
+    <ScrollView Padding="20">
+        <VerticalStackLayout Spacing="16" MaximumWidthRequest="600">
+
+            <!-- Header -->
+            <Label Text="Settings"
+                   FontSize="28" FontAttributes="Bold"
+                   TextColor="{StaticResource Blue}"
+                   Margin="0,0,0,8" />
+
+            <!-- Provider Picker -->
+            <Label Text="LLM Provider"
+                   FontSize="14" TextColor="{StaticResource Subtext}" />
+            <Border BackgroundColor="{StaticResource Surface0}"
+                    StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                    Padding="4">
+                <Picker x:Name="ProviderPicker"
+                        TextColor="{StaticResource TextColor}"
+                        SelectedIndexChanged="OnProviderChanged">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>Anthropic</x:String>
+                            <x:String>Llama</x:String>
+                            <x:String>Copilot</x:String>
+                            <x:String>PrivateAPI</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+            </Border>
+
+            <!-- API Key -->
+            <Label Text="API Key"
+                   FontSize="14" TextColor="{StaticResource Subtext}" />
+            <Border BackgroundColor="{StaticResource Surface0}"
+                    StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                    Padding="8">
+                <Entry x:Name="ApiKeyEntry"
+                       IsPassword="True"
+                       Placeholder="Enter your API key"
+                       PlaceholderColor="{StaticResource Overlay}"
+                       TextColor="{StaticResource TextColor}"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <!-- Model -->
+            <Label Text="Model"
+                   FontSize="14" TextColor="{StaticResource Subtext}" />
+            <Border BackgroundColor="{StaticResource Surface0}"
+                    StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                    Padding="8">
+                <Entry x:Name="ModelEntry"
+                       Placeholder="e.g. claude-sonnet-4-20250514"
+                       PlaceholderColor="{StaticResource Overlay}"
+                       TextColor="{StaticResource TextColor}"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <!-- Endpoint URL -->
+            <Label Text="Endpoint URL"
+                   FontSize="14" TextColor="{StaticResource Subtext}" />
+            <Border BackgroundColor="{StaticResource Surface0}"
+                    StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                    Padding="8">
+                <Entry x:Name="EndpointEntry"
+                       Placeholder="https://api.anthropic.com/v1/messages"
+                       PlaceholderColor="{StaticResource Overlay}"
+                       TextColor="{StaticResource TextColor}"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <!-- Private API Section -->
+            <VerticalStackLayout x:Name="PrivateApiSection" IsVisible="False" Spacing="16">
+                <BoxView HeightRequest="1" Color="{StaticResource Surface1}" Margin="0,8" />
+
+                <Label Text="Private API Configuration"
+                       FontSize="18" FontAttributes="Bold"
+                       TextColor="{StaticResource Yellow}" />
+
+                <Label Text="Private API URL"
+                       FontSize="14" TextColor="{StaticResource Subtext}" />
+                <Border BackgroundColor="{StaticResource Surface0}"
+                        StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                        Padding="8">
+                    <Entry x:Name="PrivateApiUrlEntry"
+                           Placeholder="http://localhost:8023"
+                           PlaceholderColor="{StaticResource Overlay}"
+                           TextColor="{StaticResource TextColor}"
+                           BackgroundColor="Transparent" />
+                </Border>
+
+                <Label Text="Private API Token"
+                       FontSize="14" TextColor="{StaticResource Subtext}" />
+                <Border BackgroundColor="{StaticResource Surface0}"
+                        StrokeShape="RoundRectangle 8" Stroke="{StaticResource Surface1}"
+                        Padding="8">
+                    <Entry x:Name="PrivateTokenEntry"
+                           IsPassword="True"
+                           Placeholder="Enter your private API token"
+                           PlaceholderColor="{StaticResource Overlay}"
+                           TextColor="{StaticResource TextColor}"
+                           BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Save Button -->
+            <Button x:Name="SaveButton"
+                    Text="Save Settings"
+                    BackgroundColor="{StaticResource Blue}"
+                    TextColor="{StaticResource Crust}"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    HeightRequest="48"
+                    Margin="0,16,0,0"
+                    Clicked="OnSaveClicked" />
+
+            <!-- Saved Feedback -->
+            <Label x:Name="SavedLabel"
+                   Text="Saved ✓"
+                   FontSize="16"
+                   TextColor="{StaticResource Green}"
+                   HorizontalOptions="Center"
+                   IsVisible="False" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
