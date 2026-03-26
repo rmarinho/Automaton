@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:conv="clr-namespace:AutomatonDesigner.UI.Converters"
+             x:Class="AutomatonDesigner.MainPage"
+             BackgroundColor="{StaticResource Base}"
+             Title="Automaton Designer">
+
+    <ContentPage.Resources>
+        <conv:BoolToColorConverter x:Key="BoolToColor"/>
+        <conv:BoolToAcceptRejectConverter x:Key="BoolToAcceptReject"/>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto" BackgroundColor="{StaticResource Base}">
+
+        <!-- Header / Toolbar -->
+        <Grid Grid.Row="0" Padding="12,8" BackgroundColor="{StaticResource Mantle}"
+              ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+            <Label Text="⚙ Automaton Designer" FontSize="16" FontAttributes="Bold"
+                   TextColor="{StaticResource Blue}" VerticalOptions="Center"/>
+            <Button Grid.Column="2" Text="✓ Validate" Clicked="OnValidate"
+                    BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                    CornerRadius="4" Padding="8,4" FontSize="13"/>
+            <Button Grid.Column="3" Text="NFA→DFA" Clicked="OnConvert"
+                    BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                    CornerRadius="4" Padding="8,4" FontSize="13" Margin="4,0,0,0"/>
+            <Button Grid.Column="4" Text="💾 Save" Clicked="OnSave"
+                    BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                    CornerRadius="4" Padding="8,4" FontSize="13" Margin="4,0,0,0"/>
+        </Grid>
+
+        <!-- Main content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,380">
+
+            <!-- Left: Canvas + Simulation -->
+            <Grid Grid.Column="0" RowDefinitions="*,220">
+
+                <!-- Canvas -->
+                <GraphicsView x:Name="CanvasView" Grid.Row="0" BackgroundColor="{StaticResource Crust}"/>
+
+                <!-- Simulation panel -->
+                <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*" BackgroundColor="{StaticResource Base}">
+                    <Label Text="SIMULATOR" FontSize="11" FontAttributes="Bold"
+                           TextColor="{StaticResource Subtext}" Padding="12,6"
+                           BackgroundColor="{StaticResource Mantle}"/>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+                          Padding="12,8" ColumnSpacing="6">
+                        <Entry x:Name="SimInputEntry" Placeholder="Enter test string…"
+                               BackgroundColor="{StaticResource Crust}" TextColor="{StaticResource TextColor}"
+                               PlaceholderColor="{StaticResource Overlay}" FontFamily="Courier New" FontSize="13"/>
+                        <Button Grid.Column="1" Text="▶ Run" Clicked="OnSimRun"
+                                BackgroundColor="{StaticResource Blue}" TextColor="{StaticResource Base}"
+                                CornerRadius="4" Padding="10,4" FontSize="13"/>
+                        <Button Grid.Column="2" Text="⏭ Step" Clicked="OnSimStep"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                                CornerRadius="4" Padding="10,4" FontSize="13"/>
+                        <Button Grid.Column="3" Text="↺" Clicked="OnSimReset"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                                CornerRadius="4" Padding="10,4" FontSize="13"/>
+                        <Label x:Name="SimResultLabel" Grid.Column="4" VerticalOptions="Center"
+                               FontSize="13" FontAttributes="Bold"/>
+                    </Grid>
+
+                    <ScrollView Grid.Row="2" Padding="12,0">
+                        <VerticalStackLayout x:Name="SimTraceStack" Spacing="2"/>
+                    </ScrollView>
+                </Grid>
+            </Grid>
+
+            <!-- Right: Editor + Tests -->
+            <Grid Grid.Column="1" RowDefinitions="*,*">
+
+                <!-- DSL Editor -->
+                <Grid Grid.Row="0" RowDefinitions="Auto,*,Auto">
+                    <Grid ColumnDefinitions="*,Auto" BackgroundColor="{StaticResource Mantle}" Padding="12,6">
+                        <Label Text="DSL EDITOR" FontSize="11" FontAttributes="Bold"
+                               TextColor="{StaticResource Subtext}"/>
+                        <Button Grid.Column="1" Text="Format" Clicked="OnFormat"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                                CornerRadius="4" Padding="8,2" FontSize="11"/>
+                    </Grid>
+
+                    <Editor x:Name="DslEditor" Grid.Row="1"
+                            BackgroundColor="{StaticResource Crust}" TextColor="{StaticResource TextColor}"
+                            FontFamily="Courier New" FontSize="13" Placeholder="-- Enter DSL here"
+                            PlaceholderColor="{StaticResource Overlay}"
+                            TextChanged="OnDslTextChanged" AutoSize="Disabled"/>
+
+                    <Label x:Name="ParseStatusLabel" Grid.Row="2" Padding="12,4"
+                           BackgroundColor="{StaticResource Mantle}" FontSize="11"/>
+                </Grid>
+
+                <!-- Test Runner -->
+                <Grid Grid.Row="1" RowDefinitions="Auto,*,Auto,Auto">
+                    <Grid ColumnDefinitions="*,Auto" BackgroundColor="{StaticResource Mantle}" Padding="12,6">
+                        <Label Text="TEST RUNNER" FontSize="11" FontAttributes="Bold"
+                               TextColor="{StaticResource Subtext}"/>
+                        <Button Grid.Column="1" Text="▶ Run All" Clicked="OnRunTests"
+                                BackgroundColor="{StaticResource Blue}" TextColor="{StaticResource Base}"
+                                CornerRadius="4" Padding="8,2" FontSize="11"/>
+                    </Grid>
+
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout x:Name="TestListStack" Spacing="2" Padding="12,4"/>
+                    </ScrollView>
+
+                    <!-- Add test row -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" Padding="12,6" ColumnSpacing="6"
+                          BackgroundColor="{StaticResource Base}">
+                        <Entry x:Name="NewTestEntry" Placeholder="input"
+                               BackgroundColor="{StaticResource Crust}" TextColor="{StaticResource TextColor}"
+                               PlaceholderColor="{StaticResource Overlay}" FontFamily="Courier New" FontSize="12"/>
+                        <Picker x:Name="NewTestExpected" Grid.Column="1"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}">
+                            <Picker.ItemsSource>
+                                <x:Array Type="{x:Type x:String}">
+                                    <x:String>Accept</x:String>
+                                    <x:String>Reject</x:String>
+                                </x:Array>
+                            </Picker.ItemsSource>
+                        </Picker>
+                        <Button Grid.Column="2" Text="+ Add" Clicked="OnAddTest"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                                CornerRadius="4" Padding="8,2" FontSize="12"/>
+                        <Button Grid.Column="3" Text="−" Clicked="OnRemoveTest"
+                                BackgroundColor="{StaticResource Surface0}" TextColor="{StaticResource TextColor}"
+                                CornerRadius="4" Padding="8,2" FontSize="12"/>
+                    </Grid>
+
+                    <Label x:Name="TestSummaryLabel" Grid.Row="3" Padding="12,4"
+                           BackgroundColor="{StaticResource Mantle}" FontSize="11"
+                           TextColor="{StaticResource Subtext}" Text="No tests run yet"/>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Status bar -->
+        <ScrollView Grid.Row="2" BackgroundColor="{StaticResource Mantle}" MaximumHeightRequest="60">
+            <VerticalStackLayout x:Name="ValidationStack" Padding="12,4"/>
+        </ScrollView>
+    </Grid>
+</ContentPage>

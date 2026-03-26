@@ -1,0 +1,28 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AutomatonDesigner"
+             x:Class="AutomatonDesigner.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Catppuccin Mocha palette -->
+            <Color x:Key="Base">#1e1e2e</Color>
+            <Color x:Key="Mantle">#181825</Color>
+            <Color x:Key="Crust">#11111b</Color>
+            <Color x:Key="Surface0">#313244</Color>
+            <Color x:Key="Surface1">#45475a</Color>
+            <Color x:Key="TextColor">#cdd6f4</Color>
+            <Color x:Key="Subtext">#a6adc8</Color>
+            <Color x:Key="Blue">#89b4fa</Color>
+            <Color x:Key="Green">#a6e3a1</Color>
+            <Color x:Key="Red">#f38ba8</Color>
+            <Color x:Key="Yellow">#f9e2af</Color>
+            <Color x:Key="Overlay">#6c7086</Color>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
