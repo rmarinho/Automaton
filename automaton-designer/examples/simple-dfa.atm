@@ -1,0 +1,16 @@
+-- A simple DFA that accepts strings ending with "ab"
+--
+-- Language: { w ∈ {a,b}* | w ends with "ab" }
+
+automaton DFA
+alphabet: a,b
+states: q0,q1,q2
+start: q0
+accept: q2
+transitions:
+  q0,a -> q1
+  q0,b -> q0
+  q1,a -> q1
+  q1,b -> q2
+  q2,a -> q1
+  q2,b -> q0

@@ -1,0 +1,13 @@
+-- ε-NFA that accepts strings of the form a(b*)
+--
+-- Language: { a, ab, abb, abbb, … }
+
+automaton ENFA
+alphabet: a,b
+states: q0,q1,q2
+start: q0
+accept: q2
+transitions:
+  q0,eps -> q1
+  q1,a -> q2
+  q2,b -> q2

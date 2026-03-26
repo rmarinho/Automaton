@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automaton Designer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div id="header">
+    <h1>⚙ Automaton Designer</h1>
+    <div id="toolbar">
+      <button onclick="api('validate')">✓ Validate</button>
+      <button onclick="api('convert')">NFA→DFA</button>
+      <button onclick="api('save')">💾 Save JSON</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content">
+    <!-- Left panel: canvas + simulation -->
+    <div id="left-panel">
+      <div id="canvas-container">
+        <canvas id="automaton-canvas"></canvas>
+      </div>
+      <!-- Simulation panel -->
+      <div id="sim-panel" class="panel">
+        <div class="panel-header"><span>Simulator</span></div>
+        <div class="sim-controls">
+          <input type="text" id="sim-input" placeholder="Enter test string…">
+          <button class="primary" onclick="runSimulation()">▶ Run</button>
+          <button onclick="stepSimulation()">⏭ Step</button>
+          <button onclick="resetSimulation()">↺ Reset</button>
+          <span id="sim-result"></span>
+        </div>
+        <div id="sim-trace"></div>
+      </div>
+    </div>
+
+    <!-- Right panel: editor + tests -->
+    <div id="right-panel">
+      <!-- DSL Editor -->
+      <div id="editor-panel">
+        <div class="panel-header">
+          <span>DSL Editor</span>
+          <button onclick="formatDsl()">Format</button>
+        </div>
+        <textarea id="dsl-editor" spellcheck="false"
+          placeholder="-- Enter automaton DSL here"></textarea>
+        <div id="editor-status"></div>
+      </div>
+      <!-- Test Runner -->
+      <div id="test-panel" class="panel">
+        <div class="panel-header">
+          <span>Test Runner</span>
+          <button class="primary" onclick="runAllTests()">▶ Run All</button>
+        </div>
+        <div id="test-list"></div>
+        <div class="test-add-row">
+          <input type="text" id="new-test-input" placeholder="input" class="test-input">
+          <select id="new-test-expected">
+            <option value="true">Accept</option>
+            <option value="false">Reject</option>
+          </select>
+          <button onclick="addTest()">+ Add</button>
+          <button onclick="removeLastTest()">− Remove</button>
+        </div>
+        <div id="test-summary" class="test-summary">No tests yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar">
+    <div id="validation-list"></div>
+  </div>
+</div>
+
+<script src="canvas.js"></script>
+<script>
+// ── Application state ──────────────────────────────────────────────────
+
+var appState = {
+  automaton: null,
+  layout: [],
+  tests: [],
+  simResult: null,
+  simStepIdx: 0
+};
+
+// ── API helpers ─────────────────────────────────────────────────────────
+
+async function apiPost(endpoint, data) {
+  const res = await fetch('/api/' + endpoint, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function apiGet(endpoint) {
+  const res = await fetch('/api/' + endpoint);
+  return res.json();
+}
+
+async function api(action) {
+  if (action === 'validate') {
+    const data = await apiPost('validate', {});
+    var el = document.getElementById('validation-list');
+    if (data.valid) {
+      el.innerHTML = '<span class="status-ok">✓ No issues found</span>';
+    } else {
+      el.innerHTML = data.issues.map(function(i) {
+        return '<div class="validation-item">⚠ ' + escHtml(i) + '</div>';
+      }).join('');
+    }
+  } else if (action === 'convert') {
+    const data = await apiPost('convert', {});
+    if (data.automaton) {
+      appState.automaton = data.automaton;
+      appState.layout = data.layout;
+      document.getElementById('dsl-editor').value = data.dsl;
+      updateCanvas();
+      setStatus('ok', '✓ Converted to DFA');
+    }
+  } else if (action === 'save') {
+    const data = await apiPost('save', {});
+    if (data.ok) alert('Project saved to ' + data.file);
+  }
+}
+
+// ── DSL Editor ──────────────────────────────────────────────────────────
+
+var parseTimer = null;
+document.addEventListener('DOMContentLoaded', function() {
+  var editor = document.getElementById('dsl-editor');
+  editor.addEventListener('input', function() {
+    clearTimeout(parseTimer);
+    parseTimer = setTimeout(parseDsl, 400);
+  });
+  loadInitialState();
+});
+
+async function loadInitialState() {
+  const data = await apiGet('state');
+  appState.automaton = data.automaton;
+  appState.layout = data.layout;
+  appState.tests = data.tests;
+  document.getElementById('dsl-editor').value = data.dsl;
+  renderTests();
+  initCanvas('automaton-canvas');
+  setTimeout(function() { updateCanvas(); }, 100);
+}
+
+async function parseDsl() {
+  var dsl = document.getElementById('dsl-editor').value;
+  const data = await apiPost('parse', {dsl: dsl});
+  if (data.ok) {
+    appState.automaton = data.automaton;
+    appState.layout = data.layout;
+    setStatus('ok', '✓ Valid automaton');
+    updateCanvas();
+  } else if (data.error) {
+    setStatus('error', '✗ ' + data.error.split('\n')[0]);
+  }
+}
+
+async function formatDsl() {
+  // Re-parse and let the server format
+  var dsl = document.getElementById('dsl-editor').value;
+  const data = await apiPost('parse', {dsl: dsl});
+  if (data.ok) {
+    // Reload state to get formatted DSL
+    const state = await apiGet('state');
+    document.getElementById('dsl-editor').value = state.dsl;
+  }
+}
+
+function setStatus(cls, msg) {
+  var el = document.getElementById('editor-status');
+  el.innerHTML = '<span class="status-' + cls + '">' + escHtml(msg) + '</span>';
+}
+
+// ── Canvas ──────────────────────────────────────────────────────────────
+
+function updateCanvas(activeStates) {
+  var trans = [];
+  if (appState.automaton && appState.automaton.automTransitions) {
+    // automTransitions is a list (from JSON Set serialization)
+    var tList = appState.automaton.automTransitions;
+    if (!Array.isArray(tList)) tList = [];
+    trans = tList.map(function(t) {
+      var label = t.transLabel;
+      var labelStr = 'ε';
+      if (label.tag === 'OnSymbol') labelStr = label.contents.symbolChar;
+      else if (label.tag === 'OnEpsilon') labelStr = 'ε';
+      return {
+        from: t.transFrom.stateName,
+        to: t.transTo.stateName,
+        label: labelStr
+      };
+    });
+  }
+  // Group duplicate transitions between same states
+  var transMap = {};
+  trans.forEach(function(t) {
+    var key = t.from + '->' + t.to;
+    if (transMap[key]) transMap[key].label += ',' + t.label;
+    else transMap[key] = {from: t.from, to: t.to, label: t.label};
+  });
+  trans = Object.values(transMap);
+
+  setAutomatonData({
+    states: appState.layout || [],
+    transitions: trans,
+    activeStates: activeStates || []
+  });
+  drawAutomaton('automaton-canvas');
+}
+
+// ── Simulation ──────────────────────────────────────────────────────────
+
+async function runSimulation() {
+  var input = document.getElementById('sim-input').value;
+  const data = await apiPost('simulate', {input: input});
+  appState.simResult = data;
+  appState.simStepIdx = data.simSteps.length - 1;
+  renderSimTrace(data, data.simSteps.length - 1);
+  showSimResult(data);
+  // Highlight final states
+  if (data.simSteps.length > 0) {
+    var last = data.simSteps[data.simSteps.length - 1];
+    updateCanvas(last.stepActiveStates.map(function(s){ return s.stateName; }));
+  }
+}
+
+async function stepSimulation() {
+  if (!appState.simResult) {
+    // Start new simulation
+    var input = document.getElementById('sim-input').value;
+    const data = await apiPost('simulate', {input: input});
+    appState.simResult = data;
+    appState.simStepIdx = 0;
+    renderSimTrace(data, 0);
+    highlightSimStep(0);
+    return;
+  }
+  var max = appState.simResult.simSteps.length - 1;
+  if (appState.simStepIdx < max) {
+    appState.simStepIdx++;
+    renderSimTrace(appState.simResult, appState.simStepIdx);
+    highlightSimStep(appState.simStepIdx);
+    if (appState.simStepIdx === max) showSimResult(appState.simResult);
+  }
+}
+
+function resetSimulation() {
+  appState.simResult = null;
+  appState.simStepIdx = 0;
+  document.getElementById('sim-result').innerHTML = '';
+  document.getElementById('sim-trace').innerHTML = '';
+  updateCanvas();
+}
+
+function highlightSimStep(idx) {
+  var s = appState.simResult.simSteps[idx];
+  if (s) {
+    updateCanvas(s.stepActiveStates.map(function(st){ return st.stateName; }));
+  }
+}
+
+function showSimResult(data) {
+  var el = document.getElementById('sim-result');
+  if (data.simAccepted) {
+    el.innerHTML = '<span class="sim-accepted">✓ ACCEPTED</span>';
+  } else {
+    el.innerHTML = '<span class="sim-rejected">✗ REJECTED</span>';
+  }
+}
+
+function renderSimTrace(data, upTo) {
+  var html = '';
+  for (var i = 0; i <= upTo && i < data.simSteps.length; i++) {
+    var s = data.simSteps[i];
+    var sym = s.stepSymbol ? s.stepSymbol.symbolChar : '—';
+    var states = s.stepActiveStates.map(function(st){ return st.stateName; }).join(', ');
+    var highlight = (i === upTo) ? ' style="background:#313244;border-radius:3px;padding:2px 4px"' : '';
+    html += '<div class="sim-step"' + highlight + '>'
+      + '<span class="step-num">Step ' + s.stepNumber + '</span>'
+      + '<span class="step-sym">' + escHtml(sym) + '</span>'
+      + '<span class="step-states">{' + escHtml(states) + '}</span>'
+      + '<span style="color:#585b70;margin-left:8px">rem: "' + escHtml(s.stepRemaining) + '"</span>'
+      + '</div>';
+  }
+  document.getElementById('sim-trace').innerHTML = html;
+}
+
+// ── Test Runner ─────────────────────────────────────────────────────────
+
+function addTest() {
+  var inp = document.getElementById('new-test-input').value;
+  var exp = document.getElementById('new-test-expected').value === 'true';
+  appState.tests.push({testInput: inp, testExpected: exp});
+  document.getElementById('new-test-input').value = '';
+  renderTests();
+}
+
+function removeLastTest() {
+  appState.tests.pop();
+  renderTests();
+}
+
+async function runAllTests() {
+  const results = await apiPost('test', {tests: appState.tests});
+  var html = '';
+  var passed = 0;
+  results.forEach(function(r, i) {
+    var cls = r.trPassed ? 'test-pass' : 'test-fail';
+    var icon = r.trPassed ? '✓' : '✗';
+    if (r.trPassed) passed++;
+    var exp = r.trTestCase.testExpected ? 'accept' : 'reject';
+    var act = r.trActual ? 'accept' : 'reject';
+    html += '<div class="test-row">'
+      + '<span class="' + cls + '">' + icon + '</span>'
+      + '<span>"' + escHtml(r.trTestCase.testInput) + '"</span>'
+      + '<span style="color:#585b70">expect: ' + exp + '</span>'
+      + '<span style="color:#585b70">actual: ' + act + '</span>'
+      + '</div>';
+  });
+  document.getElementById('test-list').innerHTML = html;
+
+  var summaryEl = document.getElementById('test-summary');
+  if (passed === results.length) {
+    summaryEl.innerHTML = '<span class="test-pass">All ' + results.length + ' tests passed ✓</span>';
+  } else {
+    summaryEl.innerHTML = '<span class="test-fail">' + passed + '/' + results.length + ' passed</span>';
+  }
+}
+
+function renderTests() {
+  var html = '';
+  appState.tests.forEach(function(t, i) {
+    var exp = t.testExpected ? 'accept' : 'reject';
+    html += '<div class="test-row">'
+      + '<span class="test-pending">○</span>'
+      + '<span>"' + escHtml(t.testInput) + '"</span>'
+      + '<span style="color:#585b70">expect: ' + exp + '</span>'
+      + '</div>';
+  });
+  document.getElementById('test-list').innerHTML = html;
+}
+
+// ── Utilities ───────────────────────────────────────────────────────────
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

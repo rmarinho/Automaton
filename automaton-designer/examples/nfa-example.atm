@@ -1,0 +1,16 @@
+-- NFA that accepts strings containing the substring "ab"
+--
+-- Language: { w ∈ {a,b}* | "ab" is a substring of w }
+
+automaton NFA
+alphabet: a,b
+states: q0,q1,q2
+start: q0
+accept: q2
+transitions:
+  q0,a -> q0
+  q0,b -> q0
+  q0,a -> q1
+  q1,b -> q2
+  q2,a -> q2
+  q2,b -> q2

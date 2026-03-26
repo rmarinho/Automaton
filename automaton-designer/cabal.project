@@ -1,0 +1,8 @@
+packages: .
+
+-- GHC 9.14+ ships newer base/template-haskell than some packages
+-- declare support for. This relaxes those upper bounds.
+allow-newer:
+  all:base,
+  all:template-haskell,
+  all:ghc-prim

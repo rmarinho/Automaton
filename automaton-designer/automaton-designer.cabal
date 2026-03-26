@@ -1,0 +1,86 @@
+cabal-version:      2.4
+name:               automaton-designer
+version:            0.1.0.0
+synopsis:           Automaton Parser, Designer, and Simulator
+description:
+  A desktop application for designing, parsing, simulating, and testing
+  finite automata (DFA, NFA, ε-NFA) with a graphical UI.
+license:            MIT
+license-file:       LICENSE
+build-type:         Simple
+extra-source-files:
+  README.md
+  examples/*.atm
+  static/*.js
+  static/*.css
+
+common common-opts
+  default-language: Haskell2010
+  default-extensions:
+    OverloadedStrings
+    DeriveGeneric
+    ScopedTypeVariables
+  ghc-options: -Wall -Wcompat
+
+library
+  import:           common-opts
+  hs-source-dirs:   src
+  exposed-modules:
+    Automaton.Types
+    Automaton.Parser
+    Automaton.Simulator
+    Automaton.Validator
+    Automaton.Serializer
+    Automaton.Converter
+  build-depends:
+    base           >= 4.14 && < 5,
+    text           >= 1.2  && < 3,
+    containers     >= 0.6  && < 1,
+    aeson          >= 2.0  && < 3,
+    aeson-pretty   >= 0.8  && < 1,
+    megaparsec     >= 9.0  && < 10,
+    bytestring     >= 0.10 && < 1,
+    directory      >= 1.3  && < 2,
+    filepath       >= 1.4  && < 2,
+    mtl            >= 2.2  && < 3
+
+executable automaton-designer
+  import:           common-opts
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  other-modules:
+    UI.Server
+    UI.Handlers
+  build-depends:
+    base             >= 4.14 && < 5,
+    automaton-designer,
+    warp             >= 3.3  && < 4,
+    wai              >= 3.2  && < 4,
+    wai-app-static   >= 3.1  && < 4,
+    http-types       >= 0.12 && < 1,
+    text             >= 1.2  && < 3,
+    containers       >= 0.6  && < 1,
+    aeson            >= 2.0  && < 3,
+    aeson-pretty     >= 0.8  && < 1,
+    bytestring       >= 0.10 && < 1,
+    directory        >= 1.3  && < 2,
+    filepath         >= 1.4  && < 2
+  ghc-options: -threaded -rtsopts "-with-rtsopts=-N"
+
+test-suite automaton-designer-test
+  import:           common-opts
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    ParserSpec
+    SimulatorSpec
+    ValidatorSpec
+    ConverterSpec
+  build-depends:
+    base               >= 4.14 && < 5,
+    automaton-designer,
+    hspec              >= 2.7  && < 3,
+    text               >= 1.2  && < 3,
+    containers         >= 0.6  && < 1
+  ghc-options: -threaded -rtsopts "-with-rtsopts=-N"
