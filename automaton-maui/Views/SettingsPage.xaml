@@ -14,6 +14,13 @@
                    TextColor="{StaticResource Blue}"
                    Margin="0,0,0,8" />
 
+            <!-- Status banner (save feedback) -->
+            <Label x:Name="StatusBanner"
+                   FontSize="16" FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"
+                   IsVisible="False"
+                   Margin="0,0,0,4" />
+
             <!-- Provider Picker -->
             <Label Text="LLM Provider"
                    FontSize="14" TextColor="{StaticResource Subtext}" />
@@ -118,14 +125,6 @@
                     HeightRequest="48"
                     Margin="0,16,0,0"
                     Clicked="OnSaveClicked" />
-
-            <!-- Saved Feedback -->
-            <Label x:Name="SavedLabel"
-                   Text="Saved ✓"
-                   FontSize="16"
-                   TextColor="{StaticResource Green}"
-                   HorizontalOptions="Center"
-                   IsVisible="False" />
 
         </VerticalStackLayout>
     </ScrollView>
