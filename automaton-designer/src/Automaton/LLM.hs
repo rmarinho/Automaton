@@ -144,6 +144,7 @@ callAPI cfg reqBody extractor = do
               [BS.pack $ "Bearer " ++ T.unpack (llmApiKey cfg)]
           $ setRequestHeader "x-api-key" [TE.encodeUtf8 (llmApiKey cfg)]
           $ setRequestHeader "anthropic-version" ["2023-06-01"]
+          $ setRequestHeader "Copilot-Integration-Id" ["automaton-designer"]
           $ reqInit
   resp <- httpLBS req
   let status = getResponseStatusCode resp
