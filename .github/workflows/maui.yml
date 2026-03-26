@@ -1,0 +1,51 @@
+name: MAUI CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'automaton-maui/**'
+      - '.github/workflows/maui.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'automaton-maui/**'
+      - '.github/workflows/maui.yml'
+
+defaults:
+  run:
+    working-directory: automaton-maui
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            framework: net10.0-maccatalyst
+          - os: macos-latest
+            framework: net10.0-ios
+          - os: ubuntu-latest
+            framework: net10.0-android
+          - os: windows-latest
+            framework: net10.0-windows10.0.19041.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (${{ matrix.framework }})
+        run: dotnet build -f ${{ matrix.framework }} --no-restore -c Release
