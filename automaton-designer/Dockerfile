@@ -16,8 +16,11 @@ RUN cabal build exe:automaton-designer \
 FROM debian:bookworm-slim
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates libgmp10 \
+    && apt-get install -y --no-install-recommends ca-certificates libgmp10 locales \
+    && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen && locale-gen \
     && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 WORKDIR /app
 
