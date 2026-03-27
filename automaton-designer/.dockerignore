@@ -1,0 +1,8 @@
+dist-newstyle/
+.cabal/
+*.o
+*.hi
+*.dyn_o
+*.dyn_hi
+.ghc.environment.*
+automaton-project.json
