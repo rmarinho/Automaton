@@ -4,39 +4,143 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Automaton Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="app-shell">
-  <!-- Sidebar flyout -->
+<!-- ═══ LOGIN PAGE (shown when not authenticated) ═══════════════════ -->
+<div id="page-login">
+  <div class="login-card">
+    <div class="about-logo">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4m-3.5-7.5L16 6m-8 12l-1.5 1.5M20.5 18.5L18 18M6 6L3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <h2>Automaton Designer</h2>
+    <p>Sign in to save your work and access AI features</p>
+    <div class="login-providers">
+      <a class="login-btn" href="/auth/github">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        Sign in with GitHub
+      </a>
+      <a class="login-btn" href="/auth/google">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Sign in with Google
+      </a>
+      <a class="login-btn" href="/auth/microsoft">
+        <svg viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+        Sign in with Microsoft
+      </a>
+      <a class="login-btn" href="/auth/apple">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Sign in with Apple
+      </a>
+    </div>
+    <div class="login-skip">
+      <a onclick="skipLogin()">Continue without signing in</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP (shown when authenticated) ════════════════════════ -->
+<div id="app-shell" style="display:none">
+  <!-- Sidebar -->
   <nav id="sidebar">
-    <div class="sidebar-header">⚙ Automaton</div>
-    <a class="nav-item active" data-page="designer" onclick="showPage('designer')">
-      <span class="nav-icon">◉</span> Designer
-    </a>
-    <a class="nav-item" data-page="chat" onclick="showPage('chat')">
-      <span class="nav-icon">💬</span> Chat
-    </a>
-    <a class="nav-item" data-page="learn" onclick="showPage('learn')">
-      <span class="nav-icon">📖</span> Learn
-    </a>
-    <a class="nav-item" data-page="settings" onclick="showPage('settings')">
-      <span class="nav-icon">⚙</span> Settings
-    </a>
-    <a class="nav-item" data-page="about" onclick="showPage('about')">
-      <span class="nav-icon">ℹ</span> About
-    </a>
+    <div class="sidebar-header" onclick="toggleSidebarCollapse()">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4m-3.5-7.5L16 6m-8 12l-1.5 1.5M20.5 18.5L18 18M6 6L3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-title">Automaton</span>
+    </div>
+    <div class="nav-section">
+      <a class="nav-item active" data-page="designer" onclick="showPage('designer')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></span>
+        <span class="nav-label">Home</span>
+      </a>
+      <a class="nav-item" data-page="chat" onclick="showPage('chat')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span>
+        <span class="nav-label">Chat</span>
+        <span class="sidebar-badge">AI</span>
+      </a>
+      <a class="nav-item" data-page="learn" onclick="showPage('learn')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg></span>
+        <span class="nav-label">Learn</span>
+      </a>
+    </div>
+    <div class="nav-section-bottom">
+      <a class="nav-item" data-page="settings" onclick="showPage('settings')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </a>
+      <a class="nav-item" data-page="about" onclick="showPage('about')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></span>
+        <span class="nav-label">About</span>
+      </a>
+    </div>
   </nav>
 
   <!-- Main content area -->
   <div id="main-area">
 
+  <!-- ── Top bar ─────────────────────────────────────────────────────── -->
+  <div id="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="topbar-title" id="topbar-title">Home</span>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" placeholder="Search..." id="global-search">
+      <kbd>⌘K</kbd>
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      </button>
+      <div class="user-avatar" id="user-avatar-btn" onclick="toggleUserMenu()">
+        <span id="avatar-content">?</span>
+      </div>
+    </div>
+    <!-- User dropdown menu -->
+    <div class="user-menu" id="user-menu">
+      <div class="user-menu-header" id="user-menu-header" style="display:none">
+        <div class="user-avatar" style="cursor:default"><span id="menu-avatar">?</span></div>
+        <div class="user-menu-info">
+          <div class="name" id="menu-user-name">Guest</div>
+          <div class="email" id="menu-user-email"></div>
+        </div>
+      </div>
+      <div id="user-menu-logged-in" style="display:none">
+        <div class="user-menu-item danger" onclick="logout()">
+          <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          Sign out
+        </div>
+      </div>
+      <div id="user-menu-logged-out">
+        <div class="login-providers">
+          <h4>Sign in</h4>
+          <a class="login-btn" href="/auth/github">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+            GitHub
+          </a>
+          <a class="login-btn" href="/auth/google">
+            <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google
+          </a>
+          <a class="login-btn" href="/auth/microsoft">
+            <svg viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+            Microsoft
+          </a>
+          <a class="login-btn" href="/auth/apple">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Apple
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ PAGE: Designer ═══════════════════════════════════════════════ -->
   <div id="page-designer" class="page active">
     <div id="header">
-      <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      <h1>Automaton Designer</h1>
       <div id="toolbar">
         <button onclick="api('validate')">✓ Validate</button>
         <button onclick="api('convert')">NFA→DFA</button>
@@ -96,16 +200,12 @@
 
   <!-- ═══ PAGE: Chat ═══════════════════════════════════════════════════ -->
   <div id="page-chat" class="page">
-    <div class="page-toolbar">
-      <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      <h2>AI Assistant</h2>
-      <label class="ctx-toggle">
-        <input type="checkbox" id="chat-context-toggle" checked>
-        Include automaton context
-      </label>
-    </div>
     <div id="chat-messages"></div>
     <div id="chat-input-bar">
+      <label class="ctx-toggle">
+        <input type="checkbox" id="chat-context-toggle" checked>
+        Context
+      </label>
       <input type="text" id="chat-input" placeholder="Ask about automata…"
              onkeydown="if(event.key==='Enter')sendChat()">
       <button class="primary" onclick="sendChat()">Send</button>
@@ -114,10 +214,6 @@
 
   <!-- ═══ PAGE: Learn ══════════════════════════════════════════════════ -->
   <div id="page-learn" class="page">
-    <div class="page-toolbar">
-      <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      <h2>Learn — Automata Theory</h2>
-    </div>
     <div class="page-scroll">
       <section class="learn-section">
         <h3>What is a Finite Automaton?</h3>
@@ -167,7 +263,7 @@ transitions:
         <div class="learn-card">
           <h4>Epsilon Closure</h4>
           <p>Given a set of states, find all states reachable via ε-transitions alone.
-             This is computed as a fixed point: start with the initial set, add all states
+             Computed as a fixed point: start with the initial set, add all states
              reachable by ε, repeat until no new states are found.</p>
         </div>
         <div class="learn-card">
@@ -188,10 +284,6 @@ transitions:
 
   <!-- ═══ PAGE: Settings ═══════════════════════════════════════════════ -->
   <div id="page-settings" class="page">
-    <div class="page-toolbar">
-      <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      <h2>Settings</h2>
-    </div>
     <div class="page-scroll">
       <section class="settings-section">
         <h3>LLM Provider</h3>
@@ -236,12 +328,10 @@ transitions:
 
   <!-- ═══ PAGE: About ══════════════════════════════════════════════════ -->
   <div id="page-about" class="page">
-    <div class="page-toolbar">
-      <button class="hamburger" onclick="toggleSidebar()">☰</button>
-      <h2>About</h2>
-    </div>
     <div class="page-scroll about-content">
-      <div class="about-logo">◉</div>
+      <div class="about-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4m-3.5-7.5L16 6m-8 12l-1.5 1.5M20.5 18.5L18 18M6 6L3.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
       <h3>Automaton Designer</h3>
       <p class="about-version">Version 1.0.0</p>
       <p>A tool for designing, parsing, simulating, and testing
@@ -255,6 +345,7 @@ transitions:
           <li>Batch test runner</li>
           <li>NFA→DFA conversion</li>
           <li>AI-powered learning assistant</li>
+          <li>OAuth login (GitHub, Google, Microsoft, Apple)</li>
         </ul>
       </div>
       <div class="about-detail">
@@ -267,7 +358,7 @@ transitions:
         <p>MIT License — © 2026 Rui Marinho</p>
       </div>
       <p><a href="https://github.com/rmarinho/Automaton" target="_blank"
-            style="color:#89b4fa">github.com/rmarinho/Automaton</a></p>
+            style="color:var(--accent)">github.com/rmarinho/Automaton</a></p>
     </div>
   </div>
 
@@ -276,36 +367,144 @@ transitions:
 
 <script src="canvas.js"></script>
 <script>
+// ── Auth state ─────────────────────────────────────────────────────────
+
+var currentUser = null;
+
+async function checkAuth() {
+  try {
+    var res = await fetch('/api/auth/me');
+    if (res.ok) {
+      currentUser = await res.json();
+      showApp();
+    } else {
+      // Check if user skipped login
+      if (localStorage.getItem('skip_login') === 'true') {
+        currentUser = null;
+        showApp();
+      } else {
+        showLogin();
+      }
+    }
+  } catch(e) {
+    // Server may not have auth routes yet — show app anyway
+    if (localStorage.getItem('skip_login') === 'true') {
+      showApp();
+    } else {
+      showLogin();
+    }
+  }
+}
+
+function showLogin() {
+  document.getElementById('page-login').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('page-login').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  updateUserUI();
+  loadInitialState();
+}
+
+function skipLogin() {
+  localStorage.setItem('skip_login', 'true');
+  currentUser = null;
+  showApp();
+}
+
+function updateUserUI() {
+  var avatarBtn = document.getElementById('avatar-content');
+  var menuAvatar = document.getElementById('menu-avatar');
+  var menuName = document.getElementById('menu-user-name');
+  var menuEmail = document.getElementById('menu-user-email');
+  var menuHeader = document.getElementById('user-menu-header');
+  var menuLoggedIn = document.getElementById('user-menu-logged-in');
+  var menuLoggedOut = document.getElementById('user-menu-logged-out');
+
+  if (currentUser) {
+    var initial = (currentUser.sessionUser || '?')[0].toUpperCase();
+    if (currentUser.sessionAvatar) {
+      avatarBtn.innerHTML = '<img src="' + escHtml(currentUser.sessionAvatar) + '">';
+      menuAvatar.innerHTML = '<img src="' + escHtml(currentUser.sessionAvatar) + '">';
+    } else {
+      avatarBtn.textContent = initial;
+      menuAvatar.textContent = initial;
+    }
+    menuName.textContent = currentUser.sessionUser || 'User';
+    menuEmail.textContent = currentUser.sessionEmail || '';
+    menuHeader.style.display = 'flex';
+    menuLoggedIn.style.display = 'block';
+    menuLoggedOut.style.display = 'none';
+  } else {
+    avatarBtn.textContent = '?';
+    menuAvatar.textContent = '?';
+    menuHeader.style.display = 'none';
+    menuLoggedIn.style.display = 'none';
+    menuLoggedOut.style.display = 'block';
+  }
+}
+
+async function logout() {
+  try {
+    await fetch('/api/auth/logout', {method: 'POST'});
+  } catch(e) {}
+  localStorage.removeItem('skip_login');
+  currentUser = null;
+  toggleUserMenu();
+  showLogin();
+}
+
+function toggleUserMenu() {
+  document.getElementById('user-menu').classList.toggle('show');
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('user-menu');
+  var btn = document.getElementById('user-avatar-btn');
+  if (menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('show');
+  }
+});
+
 // ── Navigation ─────────────────────────────────────────────────────────
+
+var pageNames = { designer: 'Home', chat: 'Chat', learn: 'Learn', settings: 'Settings', about: 'About' };
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
   document.getElementById('page-' + name).classList.add('active');
-  document.querySelector('.nav-item[data-page="' + name + '"]').classList.add('active');
+  var navEl = document.querySelector('.nav-item[data-page="' + name + '"]');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = pageNames[name] || name;
   if (name === 'designer') setTimeout(function(){ updateCanvas(); }, 50);
   if (name === 'settings') loadSettings();
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
 }
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
 
-// Close sidebar on page click (mobile)
-document.addEventListener('click', function(e) {
-  var sidebar = document.getElementById('sidebar');
-  if (sidebar.classList.contains('open') && !sidebar.contains(e.target) &&
-      !e.target.classList.contains('hamburger')) {
-    sidebar.classList.remove('open');
-  }
-});
+function toggleSidebarCollapse() {
+  if (window.innerWidth <= 800) return; // mobile: don't collapse
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
 
-// Keyboard shortcut: Ctrl+L focuses chat
+// Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
     e.preventDefault();
     showPage('chat');
     document.getElementById('chat-input').focus();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('global-search').focus();
   }
 });
 
@@ -380,18 +579,22 @@ document.addEventListener('DOMContentLoaded', function() {
     clearTimeout(parseTimer);
     parseTimer = setTimeout(parseDsl, 400);
   });
-  loadInitialState();
+  checkAuth();
 });
 
 async function loadInitialState() {
-  const data = await apiGet('state');
-  appState.automaton = data.automaton;
-  appState.layout = data.layout;
-  appState.tests = data.tests;
-  document.getElementById('dsl-editor').value = data.dsl;
-  renderTests();
-  initCanvas('automaton-canvas');
-  setTimeout(function() { updateCanvas(); }, 100);
+  try {
+    const data = await apiGet('state');
+    appState.automaton = data.automaton;
+    appState.layout = data.layout;
+    appState.tests = data.tests;
+    document.getElementById('dsl-editor').value = data.dsl;
+    renderTests();
+    initCanvas('automaton-canvas');
+    setTimeout(function() { updateCanvas(); }, 100);
+  } catch(e) {
+    console.error('Failed to load initial state:', e);
+  }
 }
 
 async function parseDsl() {
@@ -513,12 +716,12 @@ function renderSimTrace(data, upTo) {
     var s = data.simSteps[i];
     var sym = s.stepSymbol ? s.stepSymbol.symbolChar : '—';
     var states = s.stepActiveStates.map(function(st){ return st.stateName; }).join(', ');
-    var hl = (i === upTo) ? ' style="background:#313244;border-radius:3px;padding:2px 4px"' : '';
+    var hl = (i === upTo) ? ' style="background:var(--bg-surface);border-radius:3px;padding:2px 4px"' : '';
     html += '<div class="sim-step"' + hl + '>'
       + '<span class="step-num">Step ' + s.stepNumber + '</span>'
       + '<span class="step-sym">' + escHtml(sym) + '</span>'
       + '<span class="step-states">{' + escHtml(states) + '}</span>'
-      + '<span style="color:#585b70;margin-left:8px">rem: "' + escHtml(s.stepRemaining) + '"</span>'
+      + '<span style="color:var(--text-muted);margin-left:8px">rem: "' + escHtml(s.stepRemaining) + '"</span>'
       + '</div>';
   }
   document.getElementById('sim-trace').innerHTML = html;
@@ -546,8 +749,8 @@ async function runAllTests() {
     html += '<div class="test-row">'
       + '<span class="' + cls + '">' + icon + '</span>'
       + '<span>"' + escHtml(r.trTestCase.testInput) + '"</span>'
-      + '<span style="color:#585b70">expect: ' + (r.trTestCase.testExpected ? 'accept':'reject') + '</span>'
-      + '<span style="color:#585b70">actual: ' + (r.trActual ? 'accept':'reject') + '</span>'
+      + '<span style="color:var(--text-muted)">expect: ' + (r.trTestCase.testExpected ? 'accept':'reject') + '</span>'
+      + '<span style="color:var(--text-muted)">actual: ' + (r.trActual ? 'accept':'reject') + '</span>'
       + '</div>';
   });
   document.getElementById('test-list').innerHTML = html;
@@ -562,7 +765,7 @@ function renderTests() {
   appState.tests.forEach(function(t) {
     html += '<div class="test-row"><span class="test-pending">○</span>'
       + '<span>"' + escHtml(t.testInput) + '"</span>'
-      + '<span style="color:#585b70">expect: ' + (t.testExpected?'accept':'reject') + '</span></div>';
+      + '<span style="color:var(--text-muted)">expect: ' + (t.testExpected?'accept':'reject') + '</span></div>';
   });
   document.getElementById('test-list').innerHTML = html;
 }
@@ -578,7 +781,6 @@ async function sendChat() {
   appState.chatMessages.push({role: 'user', content: text});
   renderChat();
 
-  // Build messages with optional automaton context
   var msgs = [];
   if (document.getElementById('chat-context-toggle').checked) {
     var dsl = document.getElementById('dsl-editor').value || '';
@@ -604,7 +806,7 @@ async function sendChat() {
 function renderChat() {
   var el = document.getElementById('chat-messages');
   if (appState.chatMessages.length === 0) {
-    el.innerHTML = '<div class="chat-empty">Ask the AI about automata theory, your current automaton, or the DSL format.<br><br>Configure an API key in <a onclick="showPage(\'settings\')" style="color:#89b4fa;cursor:pointer">Settings</a> to get started.</div>';
+    el.innerHTML = '<div class="chat-empty">Ask the AI about automata theory, your current automaton, or the DSL format.<br><br>Configure an API key in <a onclick="showPage(\'settings\')" style="color:var(--accent);cursor:pointer">Settings</a> to get started.</div>';
     return;
   }
   var html = '';
@@ -657,7 +859,6 @@ async function saveSettings() {
   localStorage.setItem('llm_settings', JSON.stringify(settings));
   localStorage.setItem('api_token', settings.apiToken);
 
-  // Also push to backend
   await apiPost('settings', settings);
 
   var el = document.getElementById('settings-saved');

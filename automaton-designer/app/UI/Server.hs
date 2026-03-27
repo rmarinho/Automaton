@@ -7,28 +7,32 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import Network.HTTP.Types         (status200, status401, status404, hContentType)
-import Network.Wai                (Application, Request, Response, responseLBS,
-                                   requestMethod, pathInfo, strictRequestBody,
-                                   requestHeaders)
-import Network.Wai.Handler.Warp   (run)
-import System.Directory            (getCurrentDirectory, doesFileExist)
-import System.FilePath             ((</>))
+import Data.Aeson             (encode)
+import Network.HTTP.Types     (status200, status302, status401, status404,
+                               hContentType, hLocation)
+import Network.Wai            (Application, Request, Response, responseLBS,
+                               requestMethod, pathInfo, strictRequestBody,
+                               requestHeaders, queryString)
+import Network.Wai.Handler.Warp (run)
+import System.Directory        (getCurrentDirectory, doesFileExist)
+import System.FilePath         ((</>))
 
+import UI.Auth
 import UI.Handlers
 
 -- | Start the web server on the given port.
 runServer :: Int -> IO ()
 runServer port = do
-  st <- newAppState
+  st  <- newAppState
+  ast <- newAuthState
   cwd <- getCurrentDirectory
   let staticDir = cwd </> "static"
   putStrLn $ "Starting server on http://localhost:" ++ show port
-  run port (app st staticDir)
+  run port (app st ast staticDir)
 
 -- | WAI application: routes API calls and serves static files.
-app :: AppState -> FilePath -> Application
-app st staticDir req respond = do
+app :: AppState -> AuthState -> FilePath -> Application
+app st ast staticDir req respond = do
   let method = requestMethod req
       path   = pathInfo req
 
@@ -50,6 +54,22 @@ app st staticDir req respond = do
     ("GET",  ["api", "settings"]) -> handleIO (handleGetSettings st) respond
     ("POST", ["api", "settings"]) -> handleBodyIO (handleSaveSettings st) req respond
 
+    -- ── OAuth login redirects ─────────────────────────────────────────
+    ("GET", ["auth", "github"])    -> redirectToProvider ast GitHub respond
+    ("GET", ["auth", "google"])    -> redirectToProvider ast Google respond
+    ("GET", ["auth", "microsoft"]) -> redirectToProvider ast Microsoft respond
+    ("GET", ["auth", "apple"])     -> redirectToProvider ast Apple respond
+
+    -- ── OAuth callbacks ───────────────────────────────────────────────
+    ("GET", ["auth", "callback", "github"])    -> handleAuthCallback ast GitHub req respond
+    ("GET", ["auth", "callback", "google"])    -> handleAuthCallback ast Google req respond
+    ("GET", ["auth", "callback", "microsoft"]) -> handleAuthCallback ast Microsoft req respond
+    ("GET", ["auth", "callback", "apple"])     -> handleAuthCallback ast Apple req respond
+
+    -- ── Auth API ──────────────────────────────────────────────────────
+    ("GET",  ["api", "auth", "me"])     -> handleAuthMe ast req respond
+    ("POST", ["api", "auth", "logout"]) -> handleAuthLogout ast req respond
+
     -- ── Static files ──────────────────────────────────────────────────
     ("GET", [])  -> serveFile staticDir "index.html" respond
     ("GET", ps)  -> do
@@ -57,6 +77,10 @@ app st staticDir req respond = do
       serveFile staticDir fileName respond
 
     _ -> respond $ responseLBS status404 [(hContentType, "text/plain")] "Not Found"
+
+-- ---------------------------------------------------------------------------
+-- Original helpers
+-- ---------------------------------------------------------------------------
 
 -- | Handle an IO action that returns JSON bytes.
 handleIO :: IO BL.ByteString -> (Network.Wai.Response -> IO b) -> IO b
@@ -107,3 +131,105 @@ withAuth st req respond action = do
     else respond $ responseLBS status401
            [(hContentType, "application/json")]
            "{\"error\":\"Unauthorized\"}"
+
+-- ---------------------------------------------------------------------------
+-- Auth route handlers
+-- ---------------------------------------------------------------------------
+
+-- | Redirect the user to the OAuth provider's authorize URL.
+redirectToProvider :: AuthState -> OAuthProvider -> (Response -> IO b) -> IO b
+redirectToProvider ast provider respond = do
+  let url = getLoginUrl (authConfig ast) provider
+  if T.null url
+    then respond $ responseLBS status404
+           [(hContentType, "text/plain")]
+           "OAuth provider not configured"
+    else respond $ responseLBS status302
+           [ (hLocation, TE.encodeUtf8 url)
+           , (hContentType, "text/plain")
+           ] "Redirecting..."
+
+-- | Handle the OAuth callback: exchange code, create session, set cookie, redirect.
+handleAuthCallback :: AuthState -> OAuthProvider -> Request -> (Response -> IO b) -> IO b
+handleAuthCallback ast provider req respond = do
+  let qs   = queryString req
+      code = lookup "code" qs
+  case code of
+    Just (Just c) -> do
+      result <- handleOAuthCallback ast provider (TE.decodeUtf8 c)
+      case result of
+        Right (sid, _sess) ->
+          respond $ responseLBS status302
+            [ (hLocation, "/")
+            , ("Set-Cookie", mkSessionCookie sid)
+            , (hContentType, "text/plain")
+            ] "Redirecting..."
+        Left err ->
+          respond $ responseLBS status401
+            [(hContentType, "application/json")]
+            (BL.fromStrict (TE.encodeUtf8 ("{\"error\":" <> T.pack (show err) <> "}")))
+    _ ->
+      respond $ responseLBS status401
+        [(hContentType, "application/json")]
+        "{\"error\":\"Missing code parameter\"}"
+
+-- | Return the current user's session as JSON, or 401.
+handleAuthMe :: AuthState -> Request -> (Response -> IO b) -> IO b
+handleAuthMe ast req respond = do
+  let msid = extractSessionCookie req
+  case msid of
+    Nothing -> respond $ responseLBS status401
+                 [(hContentType, "application/json")]
+                 "{\"error\":\"Not authenticated\"}"
+    Just sid -> do
+      mSess <- getSession ast sid
+      case mSess of
+        Nothing -> respond $ responseLBS status401
+                     [(hContentType, "application/json")]
+                     "{\"error\":\"Session expired\"}"
+        Just sess -> respond $ responseLBS status200
+                       [(hContentType, "application/json")]
+                       (encode sess)
+
+-- | Delete the session and clear the cookie.
+handleAuthLogout :: AuthState -> Request -> (Response -> IO b) -> IO b
+handleAuthLogout ast req respond = do
+  let msid = extractSessionCookie req
+  case msid of
+    Just sid -> deleteSession ast sid
+    Nothing  -> return ()
+  respond $ responseLBS status200
+    [ (hContentType, "application/json")
+    , ("Set-Cookie", sessionCookieName <> "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
+    ] "{\"ok\":true}"
+
+-- ---------------------------------------------------------------------------
+-- Cookie helpers
+-- ---------------------------------------------------------------------------
+
+-- | Build a Set-Cookie value for the session.
+mkSessionCookie :: T.Text -> BS.ByteString
+mkSessionCookie sid =
+  sessionCookieName <> "=" <> TE.encodeUtf8 sid
+    <> "; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400"
+
+-- | Extract the session ID from the Cookie header.
+extractSessionCookie :: Request -> Maybe T.Text
+extractSessionCookie req = do
+  cookieHeader <- lookup "Cookie" (requestHeaders req)
+  let cookies = parseCookies cookieHeader
+  lookup (TE.decodeUtf8 sessionCookieName) cookies
+
+-- | Simple cookie parser: "k1=v1; k2=v2" -> [(k, v)]
+parseCookies :: BS.ByteString -> [(T.Text, T.Text)]
+parseCookies bs =
+  let txt    = TE.decodeUtf8 bs
+      pairs  = T.splitOn ";" txt
+  in concatMap parsePair pairs
+  where
+    parsePair p =
+      let stripped = T.strip p
+      in case T.breakOn "=" stripped of
+           (k, rest)
+             | T.null rest -> []
+             | otherwise   -> [(T.strip k, T.strip (T.drop 1 rest))]
