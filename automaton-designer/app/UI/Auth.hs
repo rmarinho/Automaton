@@ -13,6 +13,7 @@ module UI.Auth
   , getSession
   , deleteSession
   , sessionCookieName
+  , availableProviders
   ) where
 
 import Data.Aeson            (ToJSON(..), FromJSON(..), Value(..), (.:),
@@ -341,3 +342,14 @@ generateSessionId :: IO Text
 generateSessionId = do
   bytes <- mapM (\_ -> randomRIO (0 :: Int, 255)) [1..16 :: Int]
   return (T.pack (concatMap (\b -> let h = showHex b "" in if length h == 1 then '0':h else h) bytes))
+
+-- | Return a list of (providerName, isConfigured) pairs.
+availableProviders :: AuthConfig -> [(Text, Bool)]
+availableProviders cfg =
+  [ ("github",    isJust (authGitHub cfg))
+  , ("google",    isJust (authGoogle cfg))
+  , ("microsoft", isJust (authMicrosoft cfg))
+  , ("apple",     isJust (authApple cfg))
+  ]
+  where isJust Nothing  = False
+        isJust (Just _) = True

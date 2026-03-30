@@ -373,27 +373,44 @@ var currentUser = null;
 
 async function checkAuth() {
   try {
+    // First check which providers are available
+    var provRes = await fetch('/api/auth/providers');
+    var providers = provRes.ok ? await provRes.json() : {};
+    var anyConfigured = Object.values(providers).some(function(v) { return v; });
+
+    // Update login buttons visibility
+    updateLoginButtons(providers);
+
     var res = await fetch('/api/auth/me');
     if (res.ok) {
       currentUser = await res.json();
       showApp();
-    } else {
-      // Check if user skipped login
-      if (localStorage.getItem('skip_login') === 'true') {
-        currentUser = null;
-        showApp();
-      } else {
-        showLogin();
-      }
-    }
-  } catch(e) {
-    // Server may not have auth routes yet — show app anyway
-    if (localStorage.getItem('skip_login') === 'true') {
+    } else if (!anyConfigured || localStorage.getItem('skip_login') === 'true') {
+      // No providers configured or user skipped — go straight to app
+      currentUser = null;
       showApp();
     } else {
       showLogin();
     }
+  } catch(e) {
+    // Server error — show app anyway
+    currentUser = null;
+    showApp();
   }
+}
+
+function updateLoginButtons(providers) {
+  var names = ['github', 'google', 'microsoft', 'apple'];
+  names.forEach(function(name) {
+    var btns = document.querySelectorAll('.login-btn[href="/auth/' + name + '"]');
+    btns.forEach(function(btn) {
+      if (!providers[name]) {
+        btn.style.opacity = '0.35';
+        btn.style.pointerEvents = 'none';
+        btn.title = 'Not configured — set ' + name.toUpperCase() + '_CLIENT_ID env var';
+      }
+    });
+  });
 }
 
 function showLogin() {

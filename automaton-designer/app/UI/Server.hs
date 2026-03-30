@@ -8,6 +8,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Data.Aeson             (encode)
+import qualified Data.Map.Strict as Map
 import Network.HTTP.Types     (status200, status302, status401, status404,
                                hContentType, hLocation)
 import Network.Wai            (Application, Request, Response, responseLBS,
@@ -67,6 +68,7 @@ app st ast staticDir req respond = do
     ("GET", ["auth", "callback", "apple"])     -> handleAuthCallback ast Apple req respond
 
     -- ── Auth API ──────────────────────────────────────────────────────
+    ("GET",  ["api", "auth", "providers"]) -> handleAuthProviders ast respond
     ("GET",  ["api", "auth", "me"])     -> handleAuthMe ast req respond
     ("POST", ["api", "auth", "logout"]) -> handleAuthLogout ast req respond
 
@@ -172,6 +174,13 @@ handleAuthCallback ast provider req respond = do
       respond $ responseLBS status401
         [(hContentType, "application/json")]
         "{\"error\":\"Missing code parameter\"}"
+
+-- | Return which OAuth providers are configured.
+handleAuthProviders :: AuthState -> (Response -> IO b) -> IO b
+handleAuthProviders ast respond = do
+  let providers = availableProviders (authConfig ast)
+      json = encode $ Map.fromList providers
+  respond $ responseLBS status200 [(hContentType, "application/json")] json
 
 -- | Return the current user's session as JSON, or 401.
 handleAuthMe :: AuthState -> Request -> (Response -> IO b) -> IO b
